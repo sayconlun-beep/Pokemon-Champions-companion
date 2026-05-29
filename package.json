@@ -1,6 +1,6 @@
 {
   "name": "pokemon-champions-companion",
-  "version": "0.3.56",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -33,9 +33,11 @@
     "build:css-purge-preview": "npm run build && npm run css:dynamic-safelist && node scripts/css-runtime-coverage-report.mjs --preview",
     "test:mobile:purged": "npm run build:css-purge-preview && npx playwright test",
     "check:architecture": "node scripts/check-architecture-boundaries.mjs",
-    "check:deleted-legacy": "node scripts/check-no-legacy-systems.js"
+    "check:deleted-legacy": "node scripts/check-no-legacy-systems.js",
+    "pack:release": "git archive --format=zip -o release.zip HEAD"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.10.2",
     "@playwright/test": "^1.60.0"
   }
 }

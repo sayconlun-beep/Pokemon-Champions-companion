@@ -87,25 +87,24 @@ export function renderTeamDataConfidenceDisclosure(team = [], data = {}, options
   if (!entries.length) return '';
   const title = options.title || 'Data confidence notice';
   const idSuffix = sanitizeId(options.id || title);
-  return `<section class="card data-confidence-team-panel${options.compact ? ' compact' : ''}" aria-labelledby="data-confidence-team-${idSuffix}">
-    <div class="section-title-row compact-title-row">
-      <h2 id="data-confidence-team-${idSuffix}">${escapeHtml(title)}</h2>
-      <span class="badge data-confidence-badge">${entries.length} pending</span>
+  const labelId = `data-confidence-team-${idSuffix}-label`;
+  const noteId = `data-confidence-team-${idSuffix}-note`;
+  const pendingLabel = `${entries.length} pending`;
+  return `<details class="data-confidence-disclosure data-confidence-team-notice${options.compact ? ' compact' : ''}" data-confidence-disclosure data-team-confidence-disclosure>
+    <summary id="${labelId}" class="data-confidence-summary" aria-label="${escapeHtml(`${title}: ${pendingLabel}. ${DATA_CONFIDENCE_DISCLOSURE_COPY.summary}`)}">
+      <span class="badge data-confidence-badge">${escapeHtml(pendingLabel)}</span>
+      <span class="data-confidence-summary-text">${escapeHtml(DATA_CONFIDENCE_DISCLOSURE_COPY.summary)}</span>
+    </summary>
+    <div id="${noteId}" class="data-confidence-body" role="note" aria-labelledby="${labelId}">
+      <p>${escapeHtml(DATA_CONFIDENCE_DISCLOSURE_COPY.officialReview)}</p>
+      <ul class="data-confidence-team-list" aria-label="${escapeHtml(`${title} Pokémon breakdown`)}">
+        ${entries.map(({ state, name }) => `<li>
+          <span class="data-confidence-pokemon-name">${escapeHtml(name)}</span>
+          ${state.strategicInferenceLevel ? `<span class="data-confidence-level">Strategic confidence: ${escapeHtml(state.strategicInferenceLevel)}</span>` : '<span class="data-confidence-level">Strategic confidence: unknown</span>'}
+        </li>`).join('')}
+      </ul>
     </div>
-    <p class="muted small-copy">${escapeHtml(DATA_CONFIDENCE_DISCLOSURE_COPY.summary)}.</p>
-    <div class="data-confidence-chip-list">
-      ${entries.map(({ pokemon, state, name }) => `<details class="data-confidence-disclosure compact" data-confidence-disclosure>
-        <summary class="data-confidence-summary" aria-label="${escapeHtml(`${name}: ${DATA_CONFIDENCE_DISCLOSURE_COPY.summary}`)}">
-          <span class="badge data-confidence-badge">${escapeHtml(name)}</span>
-          ${state.strategicInferenceLevel ? `<span class="data-confidence-level">Strategic confidence: ${escapeHtml(state.strategicInferenceLevel)}</span>` : ''}
-        </summary>
-        <div class="data-confidence-body" role="note">
-          <p>${escapeHtml(DATA_CONFIDENCE_DISCLOSURE_COPY.officialReview)}</p>
-          ${state.strategicInferenceLevel ? `<p class="data-confidence-note">${escapeHtml(DATA_CONFIDENCE_DISCLOSURE_COPY.strategicPrefix)} ${escapeHtml(state.strategicInferenceLevel)}.</p>` : ''}
-        </div>
-      </details>`).join('')}
-    </div>
-  </section>`;
+  </details>`;
 }
 
 export function getTeamConfidenceEntries(team = [], data = {}) {

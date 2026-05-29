@@ -2,6 +2,7 @@ import { exportTeam, getSavedTeamEntries } from '../core/teamMigrationEngine.js'
 import { analyseItemClause } from '../core/itemClauseEngine.js';
 import { exportTeamToShowdown } from '../core/showdownFormatEngine.js';
 import { getStatConversionAuditReport } from '../core/statConversionAudit.js';
+import { isDeveloperMode } from '../utils/developerMode.js';
 
 export function ImportExportPage(state) {
   const savedEntries = getSavedTeamEntries();
@@ -13,7 +14,7 @@ export function ImportExportPage(state) {
   const exportText = mode === 'json' ? json : showdown.text;
   const result = state.importExport?.lastResult;
   const statAudit = getStatConversionAuditReport(state.team, state.data);
-  const showDeveloperAudit = isDeveloperAuditVisible(state);
+  const showDeveloperAudit = isDeveloperMode(state);
 
   return `<section class="page-stack import-export-page">
     <header class="hero">
@@ -60,17 +61,6 @@ export function ImportExportPage(state) {
   </section>`;
 }
 
-
-function isDeveloperAuditVisible(state) {
-  if (state?.importExport?.showDeveloperAudit === true || state?.settings?.developerMode === true || state?.debugMode === true) {
-    return true;
-  }
-  try {
-    return window.localStorage.getItem('championsDeveloperMode') === 'true' || window.localStorage.getItem('showImportExportAudit') === 'true';
-  } catch (_) {
-    return false;
-  }
-}
 
 function renderCompatibilityConfirmation() {
   return `<article class="card compact-card import-export-compatibility-note">

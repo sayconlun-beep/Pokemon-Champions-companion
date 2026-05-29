@@ -34,13 +34,13 @@ export function renderAnalysisDeskDynamicRegion(state) {
           <span class="badge tertiary-chip">${escapeText(coachingProfile.archetype?.primary || 'No archetype yet')}</span>
         </div>
       </header>
-      ${renderTeamDataConfidenceDisclosure(state.team, state.data, { id: 'analysis-desk', title: 'Team data confidence' })}
       ${renderTeamStyleSection(tacticalPresentation, coachingProfile)}
       ${renderHowThisTeamPlaysSection(tacticalPresentation, coachingProfile, state.team, state.data)}
       ${renderPressureCoverageSection(tacticalPresentation)}
       ${renderWeaknessCoverageSection(tacticalPresentation, weaknessEntries, state.team, state.data, coachingProfile)}
       ${renderDefensiveGamePlanSection(tacticalPresentation, weaknessEntries, state.team, coachingProfile, state.data)}
       ${renderBuildNotesSection(state.team, state.data)}
+      ${renderTeamDataConfidenceDisclosure(state.team, state.data, { id: 'analysis-desk', title: 'Team data confidence' })}
       ${renderLearningHubAnalysisLink()}`;
   return linkAnalysisSlotReferences(markup, state.team, state.data);
 }

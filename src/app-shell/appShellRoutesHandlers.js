@@ -1,3 +1,5 @@
+import { isDeveloperMode } from '../utils/developerMode.js';
+
 export function createAppShellRouteHandlers(deps) {
   const {
     getRoute,
@@ -50,8 +52,11 @@ export function createAppShellRouteHandlers(deps) {
 
 
   function navigateToRoute(root, state, routeLink) {
-    const route = resolveRouteFromLink(routeLink);
+    let route = resolveRouteFromLink(routeLink);
     if (!route) return false;
+    if (route.id === 'data-quality' && !isDeveloperMode(state)) {
+      route = getRoute('team-builder') || route;
+    }
     closeMobileMoreMenus(root);
     closeAllOpenSelectors(root);
     state.route = route.id;
@@ -93,7 +98,7 @@ export function createAppShellRouteHandlers(deps) {
     // Only intercept links that resolve to a real app route. This keeps internal
     // Learning Hub article links working without trapping invalid or stale
     // data-route values from old builds.
-    const route = resolveRouteFromLink(routeLink);
+    let route = resolveRouteFromLink(routeLink);
     if (!route) return;
     event.preventDefault();
     event.stopPropagation();

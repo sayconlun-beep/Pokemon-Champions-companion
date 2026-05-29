@@ -17582,13 +17582,34 @@ details[open] > summary .strategic-role-toggle::before,
 .data-confidence-note {
   font-weight: 650;
 }
-.data-confidence-team-panel {
-  border-color: rgba(250, 204, 21, .18);
+.data-confidence-team-notice {
+  border-color: rgba(250, 204, 21, .14);
+  background: rgba(148, 163, 184, .045);
+  box-shadow: none;
+  margin-top: .35rem;
 }
-.data-confidence-chip-list {
+.data-confidence-team-notice .data-confidence-summary {
+  min-width: 0;
+}
+.data-confidence-team-notice .data-confidence-summary-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.data-confidence-team-list {
   display: grid;
-  gap: .45rem;
-  margin-top: .65rem;
+  gap: .35rem;
+  margin: .6rem 0 0;
+  padding-left: 1.15rem;
+}
+.data-confidence-team-list li {
+  padding-left: .1rem;
+}
+.data-confidence-pokemon-name {
+  color: var(--text, #e5e7eb);
+  font-weight: 650;
+  margin-right: .35rem;
 }
 @media (max-width: 720px) {
   .data-confidence-summary {
@@ -17602,5 +17623,17 @@ details[open] > summary .strategic-role-toggle::before,
   }
   .data-confidence-disclosure {
     position: relative;
+  }
+  .data-confidence-team-notice .data-confidence-summary {
+    align-items: center;
+    flex-direction: row;
+    padding-right: 2rem;
+  }
+  .data-confidence-team-notice .data-confidence-summary::after {
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .data-confidence-team-notice[open] .data-confidence-summary::after {
+    transform: translateY(-50%) rotate(180deg);
   }
 }

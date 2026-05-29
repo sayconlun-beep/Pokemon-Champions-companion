@@ -38,7 +38,6 @@ export function MatchupsPage(state) {
         </div>
       </header>
 
-      ${renderTeamDataConfidenceDisclosure(state.team, state.data, { id: 'matchups-team', title: 'Team data confidence' })}
       ${planner.selectedOpponent ? renderDataConfidenceDisclosure(planner.selectedOpponent, { id: `matchups-opponent-${planner.selectedOpponent.pokemon_id}`, compact: true }) : ''}
       ${renderOpeningPlans(tacticalPresentation)}
       ${renderPrimaryMatchupRisks(model.primaryRisks)}
@@ -46,6 +45,7 @@ export function MatchupsPage(state) {
       ${SpeedControlPanel({ team: state.team, data: state.data, context: 'matchups', coachingProfile })}
       ${renderBattleScenarioPlanner(planner)}
       ${renderOpponentThreatHandling(model)}
+      ${renderTeamDataConfidenceDisclosure(state.team, state.data, { id: 'matchups-team', title: 'Team data confidence' })}
     </section>`;
 }
 

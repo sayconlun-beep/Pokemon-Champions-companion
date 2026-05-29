@@ -1,8 +1,9 @@
-import { getRouteOrDefault } from '../ui/routes.js';
+import { defaultRoute, getRouteOrDefault } from '../ui/routes.js';
 import { escapeText } from './appShellText.js';
 import { renderNavigation, closeMobileMoreMenus } from './appShellNavigation.js';
 import { focusRequestedLearningCard, renderProStudySandboxBanner } from './appShellLayout.js';
 import { captureFocusedElementState, restoreFocusedElementState, captureScrollState, restoreScrollState } from './renderStatePreservation.js';
+import { isDeveloperMode } from '../utils/developerMode.js';
 
 // Wrap route rendering so a single bad render() throw cannot blank the entire
 // app. Without this, the previous behaviour was: route throws → innerHTML
@@ -35,13 +36,25 @@ function renderRouteFallback(activeRoute, error) {
   </section>`;
 }
 
+function getAccessibleRouteOrDefault(state) {
+  const activeRoute = getRouteOrDefault(state.route);
+  if (activeRoute.id === 'data-quality' && !isDeveloperMode(state)) {
+    state.route = defaultRoute.id;
+    try {
+      window.history.replaceState({ routeId: defaultRoute.id }, '', defaultRoute.path);
+    } catch (_) {}
+    return defaultRoute;
+  }
+  return activeRoute;
+}
+
 export function renderAppShell(root, state, bind) {
   const focusedState = captureFocusedElementState(root);
   const scrollState = captureScrollState(root);
-  const activeRoute = getRouteOrDefault(state.route);
+  const activeRoute = getAccessibleRouteOrDefault(state);
   root.innerHTML = `
     <div class="app-shell" data-active-route="${escapeText(activeRoute.id)}">
-      ${renderNavigation(activeRoute)}
+      ${renderNavigation(activeRoute, state)}
       <main class="shell app-main mobile-safe-scroll-page" tabindex="-1">${renderProStudySandboxBanner(state)}${renderRouteSafely(activeRoute, state)}</main>
     </div>`;
   bind(root, state);

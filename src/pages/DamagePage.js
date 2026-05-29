@@ -60,8 +60,6 @@ export function DamagePage(state) {
       </div>
     </details>
 
-    ${renderTeamDataConfidenceDisclosure(state.team, state.data, { id: 'damage-team', title: 'Damage data confidence' })}
-
     ${renderOffensiveRolesSection(offensiveGroups, dedupePageText)}
 
     ${renderCleanupRoutesSection(rows, damageProfile)}
@@ -98,6 +96,8 @@ export function DamagePage(state) {
         </table>
       </div>
     </details>
+
+    ${renderTeamDataConfidenceDisclosure(state.team, state.data, { id: 'damage-team', title: 'Damage data confidence' })}
   </section>`;
 }
 

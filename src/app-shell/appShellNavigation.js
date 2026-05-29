@@ -1,5 +1,6 @@
 import { getRoute, defaultRoute } from '../ui/routes.js';
 import { escapeText } from './appShellText.js';
+import { isDeveloperMode } from '../utils/developerMode.js';
 
 export const PRIMARY_NAV_ROUTE_IDS = [
   'team-builder',
@@ -54,12 +55,23 @@ export function renderNavLink(route, activeNavRouteId, className = 'nav-link') {
   return `<a class="${className}" href="${route.path}" data-route="${route.id}" data-app-route-link="true" aria-label="${escapeText(route.label)}" aria-current="false" title="${escapeText(route.label)}">${content}</a>`;
 }
 
-export function renderNavigation(activeRoute) {
-  const activeNavRouteId = MAIN_NAV_ROUTE_IDS.has(activeRoute.id) ? activeRoute.id : 'learning-hub';
-  const desktopSecondaryRoutes = SECONDARY_NAV_ROUTE_IDS.map(getRoute).filter(Boolean);
+function filterDeveloperRoutes(routeIds, state) {
+  const showDeveloperRoutes = isDeveloperMode(state);
+  return routeIds.filter((routeId) => showDeveloperRoutes || routeId !== 'data-quality');
+}
+
+export function renderNavigation(activeRoute, state = {}) {
+  const desktopSecondaryRouteIds = filterDeveloperRoutes(SECONDARY_NAV_ROUTE_IDS, state);
+  const mobileMoreRouteIds = filterDeveloperRoutes(MOBILE_MORE_NAV_ROUTE_IDS, state);
+  const visibleMainRouteIds = new Set([
+    ...PRIMARY_NAV_ROUTE_IDS,
+    ...desktopSecondaryRouteIds
+  ]);
+  const activeNavRouteId = visibleMainRouteIds.has(activeRoute.id) ? activeRoute.id : 'learning-hub';
+  const desktopSecondaryRoutes = desktopSecondaryRouteIds.map(getRoute).filter(Boolean);
   const mobilePrimaryRoutes = MOBILE_PRIMARY_NAV_ROUTE_IDS.map(getRoute).filter(Boolean);
-  const mobileMoreRoutes = MOBILE_MORE_NAV_ROUTE_IDS.map(getRoute).filter(Boolean);
-  const isMoreActive = MOBILE_MORE_NAV_ROUTE_IDS.includes(activeNavRouteId);
+  const mobileMoreRoutes = mobileMoreRouteIds.map(getRoute).filter(Boolean);
+  const isMoreActive = mobileMoreRouteIds.includes(activeNavRouteId);
 
   const desktopSectionsHtml = DESKTOP_NAV_SECTIONS.map((section) => {
     const routes = section.routeIds.map(getRoute).filter(Boolean);

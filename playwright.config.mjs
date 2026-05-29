@@ -1,11 +1,12 @@
 import { defineConfig } from '@playwright/test';
 
 const launchOptions = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE
-  ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE }
+  ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE, args: ['--no-sandbox'] }
   : {};
 
 export default defineConfig({
   testDir: './tests',
+  testMatch: /.*\.spec\.js/,
   timeout: 60_000,
   expect: { timeout: 5_000 },
   use: {

@@ -1,3 +1,26 @@
+## v1.0.0 - Source-only release milestone
+
+- Promoted the project metadata and documentation to the 1.0.0 release.
+- Kept the restored engine, shareable URL, strategic-validator, common-build legality, and startup smoke tests passing through the full `npm test` chain.
+- Retained the honest, low-emphasis data-confidence disclosure system for community-inferred Pokémon Champions data while preserving confirmed-entry suppression.
+- Kept the Data Quality page available only through developer mode so regular users do not see internal audit tooling.
+- Added repeatable source-only release packaging guidance that excludes `.git/`, generated builds, reports, dependencies, Playwright output, and Netlify working files.
+
+## v0.9.0 - Compact team data-confidence disclosure
+
+- Redesigned the team-level data-confidence notice as a single low-emphasis collapsed disclosure instead of a prominent card with one row per team member.
+- Moved the team disclosure below the primary Analysis Desk, Damage Planner, and Matchups content so coaching stays above the fold.
+- Kept the per-slot and MetaDex inline disclosure badges unchanged while preserving the shared data-confidence source of truth and confirmed-entry suppression.
+- Updated the Playwright mobile disclosure sweep to assert collapsed-by-default behaviour, one expanded per-Pokémon list, keyboard operability, mobile overflow safety, scoped axe checks, and team-level confirmed-entry hiding.
+- Bumped project metadata and docs to v0.9.0.
+
+## v0.3.58 - Mobile disclosure accessibility sweep
+
+- Added automated Playwright coverage for the data-confidence disclosure across Team Builder, MetaDex detail, Analysis Desk, Damage, and Matchups.
+- Added scoped axe checks that hard-fail serious/critical issues inside disclosure components, plus report-only full-page axe baselines and screenshot attachments.
+- Added a deterministic confirmed-entry regression so future confirmed Pokémon automatically hide the disclosure without code changes.
+- Added the pinned `@axe-core/playwright` dev dependency and updated README/package version metadata.
+
 ## v0.3.54 - Windows Playwright launcher compatibility
 
 ## v0.3.56 - Team Builder targeted slot render wrapper fix

@@ -4,12 +4,12 @@ A Pokémon Champions team-building and analysis companion app.
 
 ## Current version
 
-v0.3.50
+v1.0.0
 
 
 ## Recent update
 
-v0.3.50 applies the first cautious CSS prune batch using runtime coverage and dynamic safelist reports, with a dedicated revert map for the removed rules.
+v1.0.0 is the first source-only release milestone. It restores the engine and validator regression suite so `npm test` passes end to end, keeps Pokémon Champions data honesty visible through low-emphasis data-confidence disclosures, gates the Data Quality page behind developer mode, and packages releases without generated folders or repository internals.
 
 ## Local setup
 

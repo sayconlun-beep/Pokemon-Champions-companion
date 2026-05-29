@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 
 const routes = [
   '/team-builder',
@@ -10,7 +11,6 @@ const routes = [
   '/items',
   '/learning-hub',
   '/import-export',
-  '/data-quality',
 ];
 
 const dropdownTriggerSelector = [
@@ -242,6 +242,224 @@ async function openVisibleDropdowns(page) {
   return failures;
 }
 
+
+const dataConfidenceDisclosureSelector = '[data-confidence-disclosure]';
+const teamDataConfidenceDisclosureSelector = '[data-team-confidence-disclosure]';
+const seededTeamPokemonIds = ['PKMN_0006', 'PKMN_0009', 'PKMN_0038_ALOLA', 'PKMN_0026_ALOLA'];
+
+function createSeededTeam(ids = seededTeamPokemonIds) {
+  return Array.from({ length: 6 }, (_, index) => {
+    const pokemonId = ids[index];
+    if (!pokemonId) return null;
+    return {
+      pokemon_id: pokemonId,
+      item_id: '',
+      ability_id: '',
+      nature: 'Jolly',
+      moves: [],
+      statAllocation: {}
+    };
+  });
+}
+
+async function waitForGoldStandardApp(page) {
+  await page.waitForLoadState('domcontentloaded');
+  await page.waitForFunction(() => {
+    const root = document.querySelector('#app');
+    return Boolean(root?.__goldStandardState?.data?.indexes?.pokemonById && root.__appShellRender);
+  });
+}
+
+async function prepareDisclosureSurface(page, route, options = {}) {
+  await page.goto(`/${route}`);
+  await waitForGoldStandardApp(page);
+  await page.evaluate(({ routeId, team, selectedPokemonId, confirmedPokemonId }) => {
+    const root = document.querySelector('#app');
+    const state = root?.__goldStandardState;
+    if (!root || !state || typeof root.__appShellRender !== 'function') {
+      throw new Error('Gold-standard app state was not ready for the disclosure mobile sweep.');
+    }
+
+    if (confirmedPokemonId) {
+      const row = state.data?.indexes?.pokemonById?.[confirmedPokemonId];
+      if (row) {
+        row.confidenceStatus = 'Confirmed';
+        row.requiresOfficialReview = false;
+        row.strictModeEligible = true;
+      }
+      const collectionRow = (state.data?.collections?.pokemon || []).find((pokemon) => pokemon?.pokemon_id === confirmedPokemonId);
+      if (collectionRow && collectionRow !== row) {
+        collectionRow.confidenceStatus = 'Confirmed';
+        collectionRow.requiresOfficialReview = false;
+        collectionRow.strictModeEligible = true;
+      }
+    }
+
+    state.route = routeId;
+    state.team = team;
+    state.slotUiState = team.map((slot) => ({ collapsed: false, strategicRoleOpen: false }));
+    state.metadex ||= { search: '', legality: 'all', field: 'all', selectedId: '', megaOnly: false };
+    if (selectedPokemonId) {
+      state.metadex.search = '';
+      state.metadex.selectedId = selectedPokemonId;
+      state.metadex.visibleLimit = Math.max(Number(state.metadex.visibleLimit || 0), 90);
+    }
+    root.__appShellRender(root, state);
+  }, {
+    routeId: route,
+    team: createSeededTeam(options.teamPokemonIds || seededTeamPokemonIds),
+    selectedPokemonId: options.selectedPokemonId || '',
+    confirmedPokemonId: options.confirmedPokemonId || ''
+  });
+  await page.waitForTimeout(250);
+}
+
+async function expandDisclosureAndAssertKeyboardOperable(page, disclosure, label) {
+  const control = disclosure.locator('summary, button[aria-expanded]').first();
+  await expect(control, `${label} disclosure control should be visible`).toBeVisible();
+
+  const accessibleMetadata = await control.evaluate((element) => {
+    const ariaLabel = element.getAttribute('aria-label');
+    const labelledBy = element.getAttribute('aria-labelledby');
+    const role = element.getAttribute('role') || (element.tagName === 'SUMMARY' || element.tagName === 'BUTTON' ? 'button' : '');
+    let name = ariaLabel || '';
+    if (!name && labelledBy) {
+      name = labelledBy.split(/\s+/).map((id) => document.getElementById(id)?.textContent || '').join(' ').trim();
+    }
+    if (!name) name = element.textContent || '';
+    return { name, role };
+  });
+  expect(accessibleMetadata.name.trim().length, `${label} disclosure control should expose an accessible name`).toBeGreaterThan(8);
+  expect(accessibleMetadata.role, `${label} disclosure control should expose or imply an interactive role`).toBeTruthy();
+
+  const stateBefore = await disclosure.evaluate((element) => {
+    if (element instanceof HTMLDetailsElement) return element.open ? 'expanded' : 'collapsed';
+    const control = element.querySelector('[aria-expanded]');
+    return control?.getAttribute('aria-expanded') || 'unknown';
+  });
+
+  await control.focus();
+  await expect(control, `${label} disclosure control should be keyboard-focusable`).toBeFocused();
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(120);
+
+  const stateAfter = await disclosure.evaluate((element) => {
+    if (element instanceof HTMLDetailsElement) return element.open ? 'expanded' : 'collapsed';
+    const control = element.querySelector('[aria-expanded]');
+    return control?.getAttribute('aria-expanded') || 'unknown';
+  });
+  expect(stateAfter, `${label} disclosure should toggle its expanded state from the keyboard`).not.toBe(stateBefore);
+
+  const body = disclosure.locator('.data-confidence-body, [role="note"]').first();
+  if (stateAfter === 'expanded' || stateAfter === 'true') {
+    await expect(body, `${label} disclosure note should be visible after keyboard expansion`).toBeVisible();
+  } else {
+    await expect(body, `${label} disclosure note should be hidden after keyboard collapse`).toBeHidden();
+    await page.keyboard.press('Enter');
+    await page.waitForTimeout(120);
+    await expect(body, `${label} disclosure note should become visible after a second keyboard toggle`).toBeVisible();
+  }
+}
+
+async function expectDisclosureMobileLayoutSafe(page, disclosure, label) {
+  const layout = await disclosure.evaluate((element) => {
+    const viewportWidth = window.innerWidth;
+    const documentWidth = Math.max(document.documentElement.scrollWidth, document.body.scrollWidth);
+    const rect = element.getBoundingClientRect();
+    return {
+      viewportWidth,
+      documentWidth,
+      left: rect.left,
+      right: rect.right
+    };
+  });
+  expect(Math.ceil(layout.documentWidth), `${label} should not introduce page-level horizontal overflow`).toBeLessThanOrEqual(layout.viewportWidth + 2);
+  expect(Math.ceil(layout.right), `${label} disclosure should stay inside the mobile viewport`).toBeLessThanOrEqual(layout.viewportWidth + 2);
+  expect(Math.floor(layout.left), `${label} disclosure should not overflow left of the mobile viewport`).toBeGreaterThanOrEqual(-2);
+}
+
+async function runDisclosureAxeChecks(page, testInfo, route) {
+  await page.evaluate((selector) => {
+    document.querySelectorAll(selector).forEach((element) => {
+      if (element instanceof HTMLDetailsElement) element.open = true;
+    });
+  }, dataConfidenceDisclosureSelector);
+
+  const scopedResults = await new AxeBuilder({ page })
+    .include(dataConfidenceDisclosureSelector)
+    .analyze();
+  const scopedSeriousOrCritical = scopedResults.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact || ''));
+  await testInfo.attach(`axe-disclosure-${route}.json`, {
+    body: JSON.stringify(scopedSeriousOrCritical, null, 2),
+    contentType: 'application/json'
+  });
+  expect(scopedSeriousOrCritical, `Serious/critical axe violations inside data-confidence disclosure on ${route}`).toEqual([]);
+
+  const fullPageResults = await new AxeBuilder({ page }).analyze();
+  const fullPageSeriousOrCritical = fullPageResults.violations.filter((violation) => ['serious', 'critical'].includes(violation.impact || ''));
+  if (fullPageSeriousOrCritical.length) {
+    console.log(`[axe baseline:${route}] ${fullPageSeriousOrCritical.map((violation) => `${violation.id} (${violation.impact}) ${violation.nodes.length} node(s)`).join('; ')}`);
+  }
+  await testInfo.attach(`axe-full-page-baseline-${route}.json`, {
+    body: JSON.stringify(fullPageSeriousOrCritical, null, 2),
+    contentType: 'application/json'
+  });
+}
+
+async function expectTeamDisclosureCollapsedByDefault(page, label) {
+  const disclosure = page.locator(teamDataConfidenceDisclosureSelector).first();
+  await expect(disclosure, `${label} team disclosure should render`).toBeVisible();
+  const isOpen = await disclosure.evaluate((element) => element instanceof HTMLDetailsElement && element.open);
+  expect(isOpen, `${label} team disclosure should be collapsed by default`).toBe(false);
+  await expect(disclosure.locator('.data-confidence-team-list'), `${label} team Pokémon breakdown should be hidden while collapsed`).toBeHidden();
+}
+
+async function expectTeamDisclosureExpandedBody(page, label) {
+  const disclosure = page.locator(teamDataConfidenceDisclosureSelector).first();
+  await expect(disclosure.locator('.data-confidence-team-list'), `${label} team Pokémon breakdown should be visible after expansion`).toBeVisible();
+  const listItems = disclosure.locator('.data-confidence-team-list li');
+  expect(await listItems.count(), `${label} team disclosure should list pending team members when expanded`).toBeGreaterThan(0);
+  await expect(disclosure.locator('.data-confidence-team-list')).toContainText(/Strategic confidence:\s*(medium|high|low|unknown)/i);
+  await expect(disclosure.locator('details details'), `${label} team disclosure should not use nested per-Pokémon details`).toHaveCount(0);
+}
+
+async function expectTeamDisclosureNotUnderHero(page, label) {
+  const placement = await page.evaluate((selector) => {
+    const notice = document.querySelector(selector);
+    const hero = document.querySelector('.hero');
+    if (!notice || !hero || notice.parentElement !== hero.parentElement) return { checkable: false };
+    const siblings = Array.from(hero.parentElement.children);
+    return {
+      checkable: true,
+      heroIndex: siblings.indexOf(hero),
+      noticeIndex: siblings.indexOf(notice)
+    };
+  }, teamDataConfidenceDisclosureSelector);
+  if (placement.checkable) {
+    expect(placement.noticeIndex, `${label} team disclosure should not sit directly under the hero`).toBeGreaterThan(placement.heroIndex + 1);
+  }
+}
+
+async function expectDisclosureSurfaceHealthy(page, testInfo, surface) {
+  const selector = surface.teamLevel ? teamDataConfidenceDisclosureSelector : dataConfidenceDisclosureSelector;
+  const disclosures = page.locator(selector);
+  await expect(disclosures.first(), `${surface.label} should render a data-confidence disclosure`).toBeVisible();
+  expect(await disclosures.count(), `${surface.label} should render at least one data-confidence disclosure`).toBeGreaterThan(0);
+  const disclosure = disclosures.first();
+  if (surface.teamLevel) {
+    await expectTeamDisclosureCollapsedByDefault(page, surface.label);
+    await expectTeamDisclosureNotUnderHero(page, surface.label);
+  }
+  await expandDisclosureAndAssertKeyboardOperable(page, disclosure, surface.label);
+  if (surface.teamLevel) await expectTeamDisclosureExpandedBody(page, surface.label);
+  await expectDisclosureMobileLayoutSafe(page, disclosure, surface.label);
+  await runDisclosureAxeChecks(page, testInfo, surface.route);
+  await testInfo.attach(`data-confidence-${surface.route}.png`, {
+    body: await page.screenshot({ fullPage: true }),
+    contentType: 'image/png'
+  });
+}
+
 test.describe('Mobile UI regression sweep', () => {
   test.beforeEach(async ({ page }) => {
     const browserErrors = [];
@@ -303,6 +521,64 @@ test.describe('Mobile UI regression sweep', () => {
       expect(page.browserErrors, `Console/page errors after interactions on ${route}`).toEqual([]);
     });
   }
+
+
+  test.describe('Developer-only Data Quality access', () => {
+    test('hides Data Quality navigation and redirects direct access when developer mode is off', async ({ page }) => {
+      await page.goto('/data-quality');
+      await waitForGoldStandardApp(page);
+      await expect(page.locator('.app-shell[data-active-route="team-builder"]'), 'Direct Data Quality access should fall back to the default route for regular users').toBeVisible();
+      expect(new URL(page.url()).pathname, 'Direct Data Quality URL should be replaced with the default route').toBe('/team-builder');
+      await expect(page.locator('a[href="/data-quality"], [data-route="data-quality"]'), 'Data Quality should not appear in desktop or mobile navigation by default').toHaveCount(0);
+    });
+
+    test('shows Data Quality navigation and page when developer mode localStorage flag is set', async ({ page }) => {
+      await page.addInitScript(() => {
+        window.localStorage.setItem('championsDeveloperMode', 'true');
+      });
+      await page.goto('/data-quality');
+      await waitForGoldStandardApp(page);
+      await expect(page.locator('.app-shell[data-active-route="data-quality"]'), 'Developer mode should allow Data Quality to render').toBeVisible();
+      await expect(page.getByRole('heading', { name: /data quality/i }).first(), 'Data Quality page heading should render for developers').toBeVisible();
+      expect(await page.locator('a[href="/data-quality"], [data-route="data-quality"]').count(), 'Data Quality navigation should reappear in developer mode').toBeGreaterThan(0);
+    });
+  });
+
+
+  test.describe('Data confidence disclosure mobile coverage', () => {
+    const disclosureSurfaces = [
+      { route: 'team-builder', label: 'Team Builder slot cards' },
+      { route: 'metadex', label: 'MetaDex detail panel', selectedPokemonId: 'PKMN_0038_ALOLA' },
+      { route: 'analysis-desk', label: 'Analysis Desk', teamLevel: true },
+      { route: 'damage', label: 'Damage Planner', teamLevel: true },
+      { route: 'matchups', label: 'Matchups', teamLevel: true }
+    ];
+
+    for (const surface of disclosureSurfaces) {
+      test(`${surface.label} disclosure is accessible, operable, and mobile-safe`, async ({ page }, testInfo) => {
+        await prepareDisclosureSurface(page, surface.route, { selectedPokemonId: surface.selectedPokemonId });
+        await expectDisclosureSurfaceHealthy(page, testInfo, surface);
+      });
+    }
+
+    test('confirmed Pokémon entries do not render the data-confidence disclosure', async ({ page }) => {
+      await prepareDisclosureSurface(page, 'team-builder', {
+        teamPokemonIds: ['PKMN_0006'],
+        confirmedPokemonId: 'PKMN_0006'
+      });
+      const confirmedSlot = page.locator('[data-slot-card="0"]').first();
+      await expect(confirmedSlot, 'Confirmed test slot should render').toBeVisible();
+      await expect(confirmedSlot.locator(dataConfidenceDisclosureSelector), 'Confirmed entries should hide the data-confidence disclosure automatically').toHaveCount(0);
+    });
+
+    test('confirmed team entries do not render the compact team disclosure', async ({ page }) => {
+      await prepareDisclosureSurface(page, 'analysis-desk', {
+        teamPokemonIds: ['PKMN_0006'],
+        confirmedPokemonId: 'PKMN_0006'
+      });
+      await expect(page.locator(teamDataConfidenceDisclosureSelector), 'Confirmed team entries should hide the team-level disclosure automatically').toHaveCount(0);
+    });
+  });
 
 
   test('mobile search inputs preserve focus and cursor across safe re-renders', async ({ page }) => {
