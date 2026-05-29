@@ -22,13 +22,6 @@ export function bindAppShellEvents(root, state, handlers) {
   bindMobileMoreDocumentGuards(root);
   if (root.__goldStandardDelegatedEventsBound) return;
 
-  // MetaDex tiles are card-like buttons rather than route links. Select them on
-  // pointerdown in the capture phase so the detail pane opens even if a nested
-  // sprite/card layer, focus handling, or later route delegation swallows the
-  // normal click.
-  root.addEventListener('pointerdown', (event) => {
-    if (handleMetadexSelectCapture?.(root, event)) return;
-  }, true);
   root.addEventListener('pointerdown', (event) => handleDelegatedPointerDown(root, event));
   // MetaDex tiles are card-like buttons rather than route links. Handle them in
   // capture before route delegation so a tile click always opens the detail panel,

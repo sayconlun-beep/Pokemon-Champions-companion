@@ -1,3 +1,327 @@
 {
-  "teams": []
+  "teams": [
+    {
+      "id": "game8-season-m1-rain-archaludon-pelipper",
+      "source": "Game8",
+      "sourceSite": "Game8",
+      "sourceUrl": "https://game8.co/games/Pokemon-Champions/archives/594143",
+      "playerName": "Game8 Walkthrough Team",
+      "tournament": "Season M-1 Ranked Battles",
+      "placement": "Featured ranked rain team",
+      "format": "Doubles Season M-1",
+      "eventDate": "2026-04-12",
+      "styleLabel": "Rain Offense",
+      "beginnerFriendly": true,
+      "tags": [
+        "Rain",
+        "Beginner-friendly",
+        "Balanced Offense",
+        "Weather Control"
+      ],
+      "commonLeads": [
+        "Pelipper + Archaludon",
+        "Pelipper + Mega Floette",
+        "Incineroar + Mega Meganium"
+      ],
+      "dangerousMatchups": [
+        "Opposing weather can shorten the rain turns this team wants to use for pressure.",
+        "Fast teams that deny Pelipper or force Archaludon to move second can slow the main route.",
+        "Strong Electric or special burst pressure can make the rain mode harder to stabilize."
+      ],
+      "usageNotes": [
+        "Pelipper supplies rain while Archaludon turns rain into immediate special pressure with Electro Shot.",
+        "Mega Floette and Mega Meganium give the team secondary special pressure so the plan is not only Archaludon damage.",
+        "Sinistcha and Incineroar add redirection, Fake Out, and pivot-style support so the attackers get safer turns."
+      ],
+      "roster": [
+        {
+          "pokemon_id": "PKMN_1018",
+          "item_id": "ITEM_WHITE_HERB",
+          "ability_id": "ABILITY_STAMINA",
+          "nature": "Timid",
+          "moves": [
+            "Draco Meteor",
+            "Flash Cannon",
+            "Electro Shot",
+            "Aura Sphere"
+          ]
+        },
+        {
+          "pokemon_id": "PKMN_0279",
+          "item_id": "ITEM_FOCUS_SASH",
+          "ability_id": "ABILITY_DRIZZLE",
+          "nature": "Timid",
+          "moves": [
+            "U-turn",
+            "Hurricane",
+            "Roost",
+            "Protect"
+          ]
+        },
+        {
+          "pokemon_id": "PKMN_0670_MEGA",
+          "item_id": "ITEM_FLOETTITE",
+          "ability_id": "ABILITY_MAGIC_GUARD",
+          "nature": "Modest",
+          "moves": [
+            "Moonblast",
+            "Dazzling Gleam",
+            "Psychic",
+            "Calm Mind"
+          ]
+        },
+        {
+          "pokemon_id": "PKMN_1013",
+          "item_id": "ITEM_MENTAL_HERB",
+          "ability_id": "ABILITY_HOSPITALITY",
+          "nature": "Calm",
+          "moves": [
+            "Matcha Gotcha",
+            "Trick Room",
+            "Rage Powder",
+            "Imprison"
+          ]
+        },
+        {
+          "pokemon_id": "PKMN_0154_MEGA",
+          "item_id": "ITEM_MEGANIUMITE",
+          "ability_id": "ABILITY_THICK_FAT",
+          "nature": "Modest",
+          "moves": [
+            "Solar Beam",
+            "Dazzling Gleam",
+            "Weather Ball",
+            "Protect"
+          ]
+        },
+        {
+          "pokemon_id": "PKMN_0727",
+          "item_id": "ITEM_SITRUS_BERRY",
+          "ability_id": "ABILITY_INTIMIDATE",
+          "nature": "Careful",
+          "moves": [
+            "Flare Blitz",
+            "Parting Shot",
+            "Snarl",
+            "Fake Out"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "game8-aaron-zheng-charizard-y-sun",
+      "source": "Game8",
+      "sourceSite": "Game8",
+      "sourceUrl": "https://game8.co/games/Pokemon-Champions/archives/593949",
+      "playerName": "Aaron \"Cybertron\" Zheng",
+      "tournament": "Season M-1 Ranked Battles Replica Team",
+      "placement": "Featured replica team",
+      "format": "Doubles Season M-1",
+      "styleLabel": "Sun Offense",
+      "beginnerFriendly": false,
+      "tags": [
+        "Sun",
+        "Hyper Offense",
+        "Replica Team",
+        "Speed Control"
+      ],
+      "rentalCode": "NFVS4SYCW2",
+      "commonLeads": [
+        "Mega Charizard Y + Venusaur",
+        "Sneasler + Mega Charizard Y",
+        "Incineroar + Venusaur"
+      ],
+      "dangerousMatchups": [
+        "Opposing weather can remove the sun pressure that Charizard and Venusaur want to use.",
+        "Fast Rock or Dragon pressure can punish Charizard and Garchomp if the lead is too aggressive.",
+        "Bulky teams that survive the first sun turns can force this team to find a safer mid-game reset."
+      ],
+      "usageNotes": [
+        "Mega Charizard Y starts the sun plan and threatens immediate spread Fire damage.",
+        "Venusaur uses sun to become a faster pressure piece with Sleep Powder and Grass damage.",
+        "Sneasler and Incineroar add Fake Out pressure so Charizard or Venusaur can take safer attacking turns."
+      ],
+      "roster": [
+        {
+          "pokemon_id": "PKMN_0006_MEGA_Y",
+          "item_id": "ITEM_CHARIZARDITE_Y",
+          "ability_id": "ABILITY_DROUGHT",
+          "nature": "Timid",
+          "moves": [
+            "Heat Wave",
+            "Solar Beam",
+            "Weather Ball",
+            "Protect"
+          ]
+        },
+        {
+          "pokemon_id": "PKMN_0003",
+          "item_id": "ITEM_FOCUS_SASH",
+          "ability_id": "ABILITY_CHLOROPHYLL",
+          "nature": "Modest",
+          "moves": [
+            "Sleep Powder",
+            "Leaf Storm",
+            "Sludge Bomb",
+            "Protect"
+          ]
+        },
+        {
+          "pokemon_id": "PKMN_0445",
+          "item_id": "ITEM_CHOICE_SCARF",
+          "ability_id": "ABILITY_ROUGH_SKIN",
+          "nature": "Adamant",
+          "moves": [
+            "Rock Slide",
+            "Dragon Claw",
+            "Earthquake",
+            "Bulldoze"
+          ]
+        },
+        {
+          "pokemon_id": "PKMN_0479_WASH",
+          "item_id": "ITEM_LEFTOVERS",
+          "ability_id": "ABILITY_LEVITATE",
+          "nature": "Bold",
+          "moves": [
+            "Hydro Pump",
+            "Thunderbolt",
+            "Will-O-Wisp",
+            "Protect"
+          ]
+        },
+        {
+          "pokemon_id": "PKMN_0903",
+          "item_id": "ITEM_WHITE_HERB",
+          "ability_id": "ABILITY_POISON_TOUCH",
+          "nature": "Jolly",
+          "moves": [
+            "Dire Claw",
+            "Close Combat",
+            "Rock Tomb",
+            "Fake Out"
+          ]
+        },
+        {
+          "pokemon_id": "PKMN_0727",
+          "item_id": "ITEM_SITRUS_BERRY",
+          "ability_id": "ABILITY_INTIMIDATE",
+          "nature": "Adamant",
+          "moves": [
+            "Darkest Lariat",
+            "Flare Blitz",
+            "Fake Out",
+            "Parting Shot"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pokemon-zone-mega-starmie-rain-core",
+      "source": "Pokemon Zone",
+      "sourceSite": "Pokemon Zone",
+      "sourceUrl": "https://www.pokemon-zone.com/champions/pokemon/starmie-mega-starmie/",
+      "playerName": "Pokemon Zone metagame aggregate",
+      "tournament": "Regulation M-A tournament teams",
+      "placement": "Top listed Mega Starmie build sample",
+      "format": "Doubles Regulation M-A",
+      "styleLabel": "Rain Balance",
+      "beginnerFriendly": true,
+      "tags": [
+        "Mega Starmie",
+        "Rain",
+        "Meta Aggregate",
+        "Priority"
+      ],
+      "commonLeads": [
+        "Pelipper + Mega Starmie",
+        "Pelipper + Archaludon",
+        "Aerodactyl + Mega Starmie"
+      ],
+      "dangerousMatchups": [
+        "Dark and Electric pressure can make Mega Starmie commit defensively before it wants to attack.",
+        "Teams that deny rain can make Pelipper and Archaludon less explosive.",
+        "Priority wars are awkward if Starmie is chipped before it can clean."
+      ],
+      "usageNotes": [
+        "Mega Starmie provides fast physical pressure and priority cleanup with Aqua Jet.",
+        "Pelipper and Archaludon form the rain backbone that gives the team a second pressure mode.",
+        "Aerodactyl, Sneasler, and Garchomp add speed, Fake Out-style tempo, and immediate physical pressure."
+      ],
+      "roster": [
+        {
+          "pokemon_id": "PKMN_0121_MEGA",
+          "item_id": "ITEM_STARMINITE",
+          "ability_id": "ABILITY_HUGE_POWER",
+          "nature": "Jolly",
+          "moves": [
+            "Aqua Jet",
+            "Liquidation",
+            "Protect",
+            "Zen Headbutt"
+          ]
+        },
+        {
+          "pokemon_id": "PKMN_0279",
+          "item_id": "ITEM_SITRUS_BERRY",
+          "ability_id": "ABILITY_DRIZZLE",
+          "nature": "Timid",
+          "moves": [
+            "Hurricane",
+            "Weather Ball",
+            "Protect",
+            "U-turn"
+          ]
+        },
+        {
+          "pokemon_id": "PKMN_1018",
+          "item_id": "ITEM_LEFTOVERS",
+          "ability_id": "ABILITY_STAMINA",
+          "nature": "Modest",
+          "moves": [
+            "Electro Shot",
+            "Draco Meteor",
+            "Flash Cannon",
+            "Protect"
+          ]
+        },
+        {
+          "pokemon_id": "PKMN_0142",
+          "item_id": "ITEM_FOCUS_SASH",
+          "ability_id": "ABILITY_UNNERVE",
+          "nature": "Jolly",
+          "moves": [
+            "Rock Slide",
+            "Tailwind",
+            "Taunt",
+            "Protect"
+          ]
+        },
+        {
+          "pokemon_id": "PKMN_0903",
+          "item_id": "ITEM_WHITE_HERB",
+          "ability_id": "ABILITY_UNBURDEN",
+          "nature": "Jolly",
+          "moves": [
+            "Dire Claw",
+            "Close Combat",
+            "Fake Out",
+            "Protect"
+          ]
+        },
+        {
+          "pokemon_id": "PKMN_0445",
+          "item_id": "ITEM_CHOICE_SCARF",
+          "ability_id": "ABILITY_ROUGH_SKIN",
+          "nature": "Jolly",
+          "moves": [
+            "Earthquake",
+            "Dragon Claw",
+            "Rock Slide",
+            "Protect"
+          ]
+        }
+      ]
+    }
+  ]
 }

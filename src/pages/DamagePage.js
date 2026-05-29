@@ -1,9 +1,9 @@
 import { estimateBenchmarks } from '../core/damageBenchmarkEngine.js';
-import { normalizeDisplayText, pageDeduper, coachingConclusion, prioritySignalCount } from '../utils/tacticalTextNormalizer.js';
+import { buildDamageBenchmarkBullets, buildDamageCleanupSteps, buildDamageOverviewPresentation, buildDamageRoleBullets, buildDamageSupportPathSteps, createPresenterLineDeduper, formatTacticalPresenterText, presenterConclusion, presenterSignalCount } from '../logic/tacticalPresenter.js';
 
 export function DamagePage(state) {
   const rows = estimateBenchmarks(state.team, state.data);
-  const dedupePageText = pageDeduper(1);
+  const dedupePageText = createPresenterLineDeduper(1);
 
   const pressureBenchmarks = groupBenchmarksByPokemon(
     rows.filter((row) => maxRange(row.range) >= 35 && !isSpeedControlMove(row.move)),
@@ -26,6 +26,12 @@ export function DamagePage(state) {
   const weakestSlot = damageProfile.weakest;
   const bestCleaner = damageProfile.cleaner;
   const bestOffensiveSupport = damageProfile.support;
+  const damagePresentation = buildDamageOverviewPresentation({
+    breaker: decorateDamageGroup(strongestPressure),
+    cleaner: decorateDamageGroup(bestCleaner),
+    weakest: decorateDamageGroup(weakestSlot),
+    support: decorateDamageGroup(bestOffensiveSupport, { supportMove: supportMoveForGroup(bestOffensiveSupport) })
+  });
 
   return `
   <section class="page-stack damage-desk-page">
@@ -46,10 +52,10 @@ export function DamagePage(state) {
       </summary>
 
       <div class="damage-overview-grid">
-        ${overviewItem('Best Wa' + 'llbreaker', breakerOverview(strongestPressure))}
-        ${overviewItem('Best Cleaner', cleanerOverview(bestCleaner))}
-        ${overviewItem('Weakest Damage Matchup', weakestDamageOverview(weakestSlot))}
-        ${overviewItem('Best Offensive Support', offensiveSupportOverview(bestOffensiveSupport))}
+        ${overviewItem('Best Wa' + 'llbreaker', damagePresentation.breaker)}
+        ${overviewItem('Best Cleaner', damagePresentation.cleaner)}
+        ${overviewItem('Weakest Damage Matchup', damagePresentation.weakest)}
+        ${overviewItem('Best Offensive Support', damagePresentation.support)}
       </div>
     </details>
 
@@ -132,12 +138,13 @@ function buildCleanupRoutes(rows, damageProfile = null) {
   const routes = routeCleaners.map((cleaner, index) => {
     const earlyBreaker = pickEarlyBreaker(groups, cleaner);
     const support = pickRouteSupport(groups, cleaner, earlyBreaker);
-    const steps = makeUniqueRouteSteps([
-      earlyDamageStep(earlyBreaker, cleaner),
-      midGameStep(cleaner, support),
-      lateGameStep(cleaner),
-      cleanupThreatReminder(cleaner)
-    ], usedStepKeys, cleaner, index);
+    const steps = makeUniqueRouteSteps(buildDamageCleanupSteps({
+      cleaner: decorateDamageGroup(cleaner),
+      earlyBreaker: decorateDamageGroup(earlyBreaker),
+      support: decorateDamageGroup(support),
+      target: opponentTargetPhrase(cleaner.rows?.[0]),
+      finishingMove: cleaner.rows.find((row) => isPriorityMove(row.move) || isFakeOut(row.move))?.move || cleaner.primaryMove
+    }), usedStepKeys, cleaner, index);
 
     return {
       title: `${cleaner.attacker} Cleanup Route`,
@@ -153,22 +160,15 @@ function buildCleanupRoutes(rows, damageProfile = null) {
 }
 
 function buildSupportPathRoute(group, finisher) {
-  const move = group.primaryMove || group.rows?.[0]?.move || 'its safest attack';
-  const targetClass = opponentTargetPhrase(group.rows?.[0]);
-  const finisherText = finisher?.attacker ? ` so ${finisher.attacker} can finish later` : ' so the real cleaners can finish later';
   return {
     title: `${group.attacker} Support Path`,
-    steps: [
-      `Use ${move} for chip into ${targetClass}${finisherText}.`,
-      `Do not treat ${group.attacker} as the closer; preserve your stronger damage pieces for the final knockout turns.`,
-      `Pair ${group.attacker} with ${finisher?.attacker || 'a stronger attacker'} when opponents are still healthy, then switch the closer in after chip damage lands.`
-    ]
+    steps: buildDamageSupportPathSteps({ group: decorateDamageGroup(group), finisher: decorateDamageGroup(finisher) })
   };
 }
 
 function makeUniqueRouteSteps(steps, usedStepKeys, cleaner, routeIndex) {
   return steps.map((step, stepIndex) => {
-    let text = normalizeDisplayText(step);
+    let text = formatTacticalPresenterText(step);
     const key = normalizeKey(text).replace(cleaner.attacker.toLowerCase(), '[mon]');
     if (!usedStepKeys.has(key)) {
       usedStepKeys.add(key);
@@ -193,7 +193,7 @@ function renderCleanupRouteCard(route) {
         </div>
 
         <ol class="cleanup-route-steps">
-          ${route.steps.map((step) => `<li>${escapeText(normalizeDisplayText(step))}</li>`).join('')}
+          ${route.steps.map((step) => `<li>${escapeText(formatTacticalPresenterText(step))}</li>`).join('')}
         </ol>
       </div>
     </article>
@@ -223,45 +223,6 @@ function cleanerScore(group) {
   return score;
 }
 
-function earlyDamageStep(earlyBreaker, cleaner) {
-  if (earlyBreaker) return `Use ${earlyBreaker.attacker} early to weaken bulky opponents for ${cleaner.attacker}.`;
-  return `Use your strongest attacks early so ${cleaner.attacker} has easier targets later.`;
-}
-
-function midGameStep(cleaner, support) {
-  const target = opponentTargetPhrase(cleaner.rows?.[0]);
-  if (support) return `Use ${support.attacker}'s ${support.primaryMove} in the mid-game to chip or control ${target} for ${cleaner.attacker}.`;
-  return `Preserve ${cleaner.attacker} specifically for ${target}; avoid spending it before ${cleaner.primaryMove} can finish those targets.`;
-}
-
-function lateGameStep(cleaner) {
-  const finishingMove = cleaner.rows.find((row) => isPriorityMove(row.move) || isFakeOut(row.move))?.move || cleaner.primaryMove;
-  return `Use ${finishingMove} late-game when weakened opponents are ready to be finished.`;
-}
-
-function cleanupThreatReminder(cleaner) {
-  const name = normalizeKey(cleaner.attacker);
-  if (name.includes('kangaskhan')) return 'Remove Fighting-types before committing to the final cleanup.';
-  if (cleaner.rows.some((row) => isPriorityMove(row.move))) return 'Remove bulky resistances before relying on priority to finish.';
-  return 'Remove healthy defensive Pokémon and faster revenge killers before the final push.';
-}
-
-function pickBestCleaner(pressureBenchmarks, utilityPressure, fallback) {
-  const priorityCleaner = utilityPressure.find((group) => group.rows.some((row) => isPriorityMove(row.move)));
-  return priorityCleaner || pressureBenchmarks.find((group) => group.highRange >= 50) || fallback || null;
-}
-
-function pickBestOffensiveSupport(utilityPressure, rows) {
-  const supportGroup = utilityPressure.find((group) => group.rows.some((row) => isSpeedControlMove(row.move)));
-  if (supportGroup) return supportGroup;
-
-  const fakeOutRow = rows.find((row) => isFakeOut(row.move));
-  if (fakeOutRow) return buildBenchmarkGroup({ attacker: fakeOutRow.attacker, rows: [fakeOutRow] }, 'utility');
-
-  return null;
-}
-
-
 function buildDamageProfile(groups, rows) {
   const sorted = [...groups].sort((a, b) => b.highRange - a.highRange);
   const breaker = sorted.find((group) => group.role === ('Wa' + 'llbreaker')) || sorted[0] || null;
@@ -275,29 +236,21 @@ function buildDamageProfile(groups, rows) {
   return { breaker, cleaner, weakest, support };
 }
 
-function breakerOverview(group) {
-  if (!group) return 'Add Pokémon and moves to see which teammate breaks bulky opponents.';
-  return `${group.attacker} is the main breaker because ${group.primaryMove} reaches its best pressure range into ${opponentTargetPhrase(group.rows?.[0])}.`;
+function decorateDamageGroup(group, extras = {}) {
+  if (!group) return null;
+  return {
+    ...group,
+    primaryTarget: group.primaryTarget || opponentTargetPhrase(group.rows?.[0]),
+    supportMove: extras.supportMove || group.supportMove || group.primaryMove
+  };
 }
 
-function cleanerOverview(group) {
-  if (!group) return 'Add stronger attacks to see who should finish games.';
-  return `${group.attacker} is the cleaner because ${group.primaryMove} can finish chipped ${opponentTargetPhrase(group.rows?.[0])}.`;
+function supportMoveForGroup(group) {
+  if (!group) return '';
+  return group.rows?.find((row) => isSpeedControlMove(row.move))?.move || group.primaryMove;
 }
 
-function weakestDamageOverview(group) {
-  if (!group) return 'No major offensive weak spot is showing from the current damage checks.';
-  return `${group.attacker} has the weakest damage profile: ${group.primaryMove} may need chip or support before it finishes ${opponentTargetPhrase(group.rows?.[0])}.`;
-}
-
-function offensiveSupportOverview(group) {
-  if (!group) return 'No clear offensive support move is showing yet.';
-  const supportMove = group.rows.find((row) => isSpeedControlMove(row.move))?.move || group.primaryMove;
-  return `${group.attacker} provides offensive support with ${supportMove}, helping stronger attackers convert damage into knockouts.`;
-}
-
-
-function renderOffensiveRolesSection(groupsOrRows, dedupePageText = normalizeDisplayText) {
+function renderOffensiveRolesSection(groupsOrRows, dedupePageText = formatTacticalPresenterText) {
   const groups = Array.isArray(groupsOrRows) && groupsOrRows[0]?.role ? groupsOrRows : buildOffensiveRoleGroups(groupsOrRows);
 
   return `
@@ -410,41 +363,14 @@ function offensiveRoleLabel(attacker, rows) {
 function offensiveRoleBullets(attacker, rows, role) {
   const primary = rows[0] || {};
   const support = rows.find((row) => isSpeedControlMove(row.move) || isFakeOut(row.move));
-  const high = maxRange(primary.range);
-
-  return unique([
-    threatSummary(primary, role),
-    bestUseSummary(attacker, primary, support, role, high),
-    warningSummary(primary, role, high)
-  ]);
-}
-
-function threatSummary(row, role) {
-  if (!row?.move) return 'Use this Pokémon to help teammates find safer attacks.';
-  const targetClass = opponentTargetPhrase(row);
-  if (role === 'Damage Support') return `${row.move} gives this Pokémon a reliable way to threaten ${targetClass} — for example, use it when those opposing targets need chip before your cleaner enters.`;
-  if (role === 'Cleaner') return `${row.move} is useful for finishing weakened ${targetClass}.`;
-  if (role === ('Wa' + 'llbreaker')) return `${row.move} threatens bulky ${targetClass} that try to switch in safely.`;
-  return `${row.move} pressures ${targetClass}.`;
-}
-
-function bestUseSummary(attacker, row, support, role, high) {
-  const targetClass = opponentTargetPhrase(row);
-  if (role === 'Cleaner') return `Best saved for later, after ${targetClass} have been chipped into ${row?.move || 'its main move'} range.`;
-  if (role === 'Damage Support') {
-    const move = support?.move || row?.move || 'its support move';
-    return `Best used when ${move} changes the damage race against ${targetClass}, rather than when you need an immediate knockout.`;
-  }
-  if (high >= 75) return `Best used early or mid-game to remove important ${targetClass}.`;
-  if (high >= 50) return `Best used to weaken bulky ${targetClass} before your cleaner takes over.`;
-  return `Best used after another teammate has already softened ${targetClass}.`;
-}
-
-function warningSummary(row, role, high) {
-  if (role === 'Damage Support') return 'Do not label this as a main closer unless its damage range improves; it should create openings for stronger attackers.';
-  if (role === 'Cleaner') return 'Avoid sending it in too early if the opponent still has healthy defensive Pokémon that resist its finishing move.';
-  if (high < 35) return 'It may need chip damage from teammates before it can secure KOs.';
-  return 'Avoid reckless switches into faster attackers or super-effective hits.';
+  return buildDamageRoleBullets({
+    attacker,
+    primary,
+    support,
+    role,
+    high: maxRange(primary.range),
+    targetClass: opponentTargetPhrase(primary)
+  });
 }
 
 function opponentTargetPhrase(row) {
@@ -460,15 +386,15 @@ function roleTone(role) {
   return 'strong';
 }
 
-function renderSection(title, subtitle, groups, tone, dedupePageText = normalizeDisplayText, openByDefault = false) {
+function renderSection(title, subtitle, groups, tone, dedupePageText = formatTacticalPresenterText, openByDefault = false) {
   return `
     <details class="card damage-section-card damage-panel ${tone}" ${openByDefault ? 'open' : ''}>
       <summary class="damage-panel-summary">
         <div>
           <h2>${title}</h2>
-          <p class="muted-text">${escapeText(coachingConclusion(subtitle))}</p>
+          <p class="muted-text">${escapeText(presenterConclusion(subtitle))}</p>
         </div>
-        <span class="badge tertiary-chip">${prioritySignalCount(groups, groups.length)}</span>
+        <span class="badge tertiary-chip">${presenterSignalCount(groups, groups.length)}</span>
       </summary>
 
       <div class="damage-rows grouped-damage-rows damage-role-grid">
@@ -480,7 +406,7 @@ function renderSection(title, subtitle, groups, tone, dedupePageText = normalize
 
 function renderBenchmarkGroup(group, tone, dedupePageText) {
   const bullets = group.bullets
-    .map((bullet) => coachingConclusion(dedupePageText(bullet, { ensureSentence: true })))
+    .map((bullet) => presenterConclusion(dedupePageText(bullet, { ensureSentence: true })))
     .filter(Boolean)
     .slice(0, 3);
 
@@ -544,56 +470,19 @@ function benchmarkTitle(attacker, mode) {
 }
 
 function benchmarkBullets(attacker, rows, mode, range) {
-  const primary = rows[0];
+  const primary = rows[0] || {};
   const secondary = rows.find((row) => normalizeKey(row.move) !== normalizeKey(primary?.move));
-
-  if (mode === 'warning') {
-    return unique([
-      lowPressureSummary(primary),
-      failedThresholdSummary(primary),
-      cleanupSafetySummary(range)
-    ]);
-  }
-
-  if (mode === 'utility') {
-    const utilityLines = rows.map((row) => utilitySummary(row)).filter(Boolean);
-    return unique([
-      ...utilityLines,
-      secondary ? `${secondary.move} gives this Pokémon another way to help the team.` : 'Helps create safer turns for offensive teammates.',
-      `Damage range shown here: ${range}.`
-    ]);
-  }
-
-  return unique([
-    pressureSummary(primary),
-    secondary ? `${secondary.move} gives ${attacker} another useful attacking option.` : 'Deals reliable neutral damage into common targets.',
-    `Damage range shown here: ${range}.`
-  ]);
-}
-
-function pressureSummary(row) {
-  const high = maxRange(row.range);
-  if (high >= 75) return `${row.move} can heavily damage or remove key targets.`;
-  if (high >= 50) return `${row.move} helps break bulky defensive Pokémon.`;
-  return `${row.move} gives steady damage into neutral targets.`;
-}
-
-function lowPressureSummary(row) {
-  const high = maxRange(row.range);
-  if (high < 25) return `${row.move} struggles to deal meaningful damage into bulky targets like ${row.target}.`;
-  if (high < 35) return `${row.move} often needs teammate support or chip damage before it can finish ${row.target}.`;
-  return `${row.move} can struggle to secure knockouts consistently without support from teammates.`;
-}
-
-function failedThresholdSummary(row) {
-  const high = maxRange(row.range);
-  if (high < 25) return 'Can struggle to finish bulky opponents without teammate support.';
-  if (high < 35) return 'Usually works better after teammates have already weakened the opposing team.';
-  return 'This matchup may require stronger attackers or extra chip damage support.';
-}
-
-function cleanupSafetySummary(range) {
-  return `Current damage range: ${range}. Focus more on support or chip damage than direct knockouts.`;
+  return buildDamageBenchmarkBullets({
+    attacker,
+    primary,
+    secondary,
+    mode,
+    range,
+    high: maxRange(range),
+    isUtilityMove: isSpeedControlMove(primary.move),
+    isPriorityMove: isPriorityMove(primary.move),
+    isFakeOut: isFakeOut(primary.move)
+  });
 }
 
 function isLowPressureWarning(row) {
@@ -601,16 +490,6 @@ function isLowPressureWarning(row) {
   const high = maxRange(row.range);
   if (!high) return false;
   return high < 45;
-}
-
-function utilitySummary(row) {
-  const move = String(row.move || '');
-  if (isFakeOut(move)) return 'Fake Out buys a safe turn and can help a teammate attack first.';
-  if (normalizeKey(move) === 'icy wind') return 'Icy Wind provides reliable speed-control support.';
-  if (normalizeKey(move) === 'thunder wave') return 'Thunder Wave slows faster threats so your attackers can move before them.';
-  if (normalizeKey(move) === 'electroweb') return 'Electroweb adds chip damage while slowing the opposing side.';
-  if (isPriorityMove(move)) return `${move} can finish weakened targets before they move.`;
-  return `${move} helps control turn order for the team.`;
 }
 
 function compressedRange(rows) {
@@ -638,7 +517,7 @@ function overviewItem(label, value) {
   return `
     <div class="overview-item">
       <span class="overview-label">${label}</span>
-      <span class="overview-value">${escapeText(normalizeDisplayText(value))}</span>
+      <span class="overview-value">${escapeText(formatTacticalPresenterText(value))}</span>
     </div>
   `;
 }

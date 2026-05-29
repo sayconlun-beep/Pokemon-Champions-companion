@@ -7077,6 +7077,49 @@ overflow-y: visible;
   }
 }
 
+
+
+/* METADEX_DETAIL_OVERLAY_SPRITE_FIX
+   The direct body-mounted MetaDex overlay is not inside .metadex-page, so keep
+   the detail sprite constrained independently from the old in-page panel rules. */
+.metadex-detail-overlay .metadex-detail-header {
+  display: flex;
+  align-items: center;
+  gap: .85rem;
+  min-width: 0;
+}
+.metadex-detail-overlay .metadex-detail-sprite {
+  width: clamp(4.25rem, 12vw, 5.75rem) !important;
+  height: clamp(4.25rem, 12vw, 5.75rem) !important;
+  flex: 0 0 clamp(4.25rem, 12vw, 5.75rem) !important;
+  display: grid !important;
+  place-items: center !important;
+  overflow: visible !important;
+  border-radius: 22px;
+  background: radial-gradient(circle at 50% 48%, rgba(145,200,255,.16), rgba(255,255,255,.04) 62%, transparent 72%);
+  border: 1px solid rgba(255,255,255,.08);
+}
+.metadex-detail-overlay .metadex-detail-sprite img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+  object-position: center center !important;
+  filter: drop-shadow(0 12px 14px rgba(0,0,0,.36)) !important;
+}
+@media (max-width: 720px) {
+  .metadex-detail-overlay .metadex-detail-header {
+    align-items: flex-start;
+  }
+  .metadex-detail-overlay .metadex-detail-sprite {
+    width: 4rem !important;
+    height: 4rem !important;
+    flex-basis: 4rem !important;
+  }
+}
+
 /* MetaDex guided-builder navigation actions */
 .metadex-builder-actions-panel { border-color: rgba(145,200,255,.28); background: linear-gradient(180deg, rgba(145,200,255,.10), rgba(255,255,255,.035)); }
 .metadex-builder-action-grid { display: grid; gap: .45rem; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
@@ -17556,4 +17599,73 @@ details[open] > summary .strategic-role-toggle::before,
     min-height: 2.95rem;
     font-size: .92rem;
   }
+}
+
+
+/* METADEX_DETAIL_OVERLAY_PAGE
+   Selected MetaDex entries open as a focused page-style detail view so the
+   detail experience is consistent on desktop, tablet, and mobile. */
+.metadex-detail-overlay {
+  place-items: start center;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.metadex-detail-overlay-panel {
+  grid-template-rows: auto minmax(0, 1fr);
+  width: min(1120px, 100%);
+  height: min(94dvh, 880px);
+  background: var(--panel-bg, #0f172a);
+  color: var(--text, #f8fafc);
+  border: 1px solid rgba(125, 211, 252, 0.26);
+}
+.metadex-detail-overlay-head {
+  align-items: flex-start;
+  color: inherit;
+}
+.metadex-detail-overlay-head h2 {
+  margin: 0.15rem 0 0;
+}
+.metadex-detail-overlay-body {
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 0.15rem;
+}
+.metadex-detail-overlay-body .metadex-detail-stack {
+  padding-bottom: 1rem;
+}
+.metadex-detail-close {
+  flex: 0 0 auto;
+}
+.metadex-detail-panel-empty-state {
+  min-height: 18rem;
+}
+@media (max-width: 720px) {
+  .metadex-detail-overlay {
+    place-items: start stretch;
+    padding: max(.5rem, env(safe-area-inset-top)) .5rem max(.5rem, env(safe-area-inset-bottom));
+  }
+  .metadex-detail-overlay-panel {
+    width: 100%;
+    height: calc(100dvh - max(1rem, env(safe-area-inset-top)) - max(.75rem, env(safe-area-inset-bottom)));
+    max-height: none;
+    border-radius: 1rem;
+  }
+}
+
+
+/* METADEX_DETAIL_OVERLAY_ONLY
+   MetaDex selection now opens a focused overlay/page. Hide the legacy sidebar
+   detail panel at every viewport and keep the overlay independent from the old
+   mobile selected-detail rules. */
+.metadex-page .metadex-layout {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+.metadex-page .metadex-layout > .metadex-detail-panel {
+  display: none !important;
+}
+.metadex-page .metadex-detail-overlay {
+  display: grid !important;
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 9999 !important;
 }

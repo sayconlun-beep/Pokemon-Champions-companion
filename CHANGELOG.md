@@ -1,3 +1,28 @@
+## v0.3.35 — Tactical presenter Analysis Desk coverage wording
+
+- Moved Analysis Desk Pressure Coverage and Weakness Coverage display wording onto the tactical presenter output.
+- Kept raw coverage calculations and tile rendering in `AnalysisDeskPage.js`, while selecting summaries, coaching lines, and tile explanations from presenter-owned strings.
+- Removed duplicate local weakness wording from the displayed coverage path without deleting the legacy semantic deduper yet.
+- Preserved pressure coverage contributors, move details, defensive counts, weak/resist/immune/neutral groups, suggested slot links, and MetaDex answer links.
+
+## v0.3.34 — Tactical presenter Analysis Desk defensive risks
+
+- Moved Analysis Desk Defensive Game Plan and Actionable Risk wording onto canonical tactical presenter strings.
+- Kept slot-link rendering in the page while moving risk titles, summaries, current answers, look-for guidance, and suggested-slot wording into presenter output.
+- Preserved defensive concern facts, affected Pokémon, safer answers, and Team Builder routing.
+
+## v0.3.33 — Tactical presenter Matchups battle coaching
+
+- Moved Matchups Battle Coaching section metadata and empty-state wording onto the tactical presenter output.
+- Kept opponent-reactive battle cards presenter-backed and removed the old unused local battle-tip generator path from the page.
+- Preserved best-answer, speed-plan, disruption, and positioning-risk coaching facts.
+
+## v0.3.32 — Tactical presenter Matchups primary risks
+
+- Moved Matchups Primary Matchup Risks onto canonical tactical presenter strings.
+- Replaced page-local fallback risk prose with presenter-owned risk title, question, answer, empty-state, and no-risk messages.
+- Preserved risk type, exposed Pokémon, safer answers, selected-opponent context, and lead adjustment guidance.
+
 ## v0.3.31 — Analysis Desk clean section headers
 
 - Cleaned the Analysis Desk section headers so each major section now has one clear title instead of a small kicker plus a repeated larger heading.

@@ -3,6 +3,7 @@ import { getPokemonDisplayName } from '../utils/formGrouping.js';
 import { getReadableAbilityName, getReadableItemName, getReadableMoveName, getReadablePokemonName } from '../utils/displayNames.js';
 import { buildTeamCoachingProfile } from '../logic/teamCoachingProfile.js';
 import { buildTeamGuideContext } from '../logic/teamGuideContext.js';
+import { buildTacticalPresentation } from '../logic/tacticalPresenter.js';
 import { renderArchetypeBadge, renderNextTeammateSuggestions } from '../ui/teamCoachingRenderers.js';
 
 const GUIDE_STEPS = [
@@ -87,9 +88,12 @@ const PAGE_ROUTE_MAP = {
 export function TeamBuildingGuidePage(state) {
   const coachingProfile = buildTeamCoachingProfile(state.team, { data: state.data });
   const guideContext = buildTeamGuideContext(state.team, { data: state.data, profile: coachingProfile });
+  const currentStep = clampStep(state.teamBuildingGuideStep || 1);
+  const tacticalPresentation = buildTacticalPresentation(coachingProfile, { page: 'guide', guideContext, currentStep });
+  guideContext.tacticalPresentation = tacticalPresentation;
   state.__teamGuideCoachingProfile = coachingProfile;
   state.__teamGuideContext = guideContext;
-  const currentStep = clampStep(state.teamBuildingGuideStep || 1);
+  state.__teamGuideTacticalPresentation = tacticalPresentation;
   const step = GUIDE_STEPS[currentStep - 1];
   return `<section class="page-stack team-building-guide-page">
     <header class="hero team-guide-hero tactical-primary-panel">
@@ -159,7 +163,9 @@ export function TeamBuildingGuidePage(state) {
 function renderGuideCoachingCheckpoint(state = {}, currentStep = 1, sharedContext = null) {
   const context = sharedContext || state.__teamGuideContext || buildTeamGuideContext(state.team, { data: state.data, profile: state.__teamGuideCoachingProfile });
   const profile = context.profile || state.__teamGuideCoachingProfile || buildTeamCoachingProfile(state.team, { data: state.data });
-  const nextStep = guideNextStepSuggestion(profile, currentStep);
+  const presentation = state.__teamGuideTacticalPresentation || context.tacticalPresentation || buildTacticalPresentation(profile, { page: 'guide', guideContext: context, currentStep });
+  const guide = presentation.guide || {};
+  const nextStep = guide.nextAction || guideNextStepSuggestion(profile, currentStep);
   const filledSlots = Number(context.teamCompleteness?.filledSlots || profile.completeness?.filledSlots || 0);
   const confidence = String(context.confidence || '').trim();
   const hasStablePlan = filledSlots >= 6 && Array.isArray(profile.gameplans) && profile.gameplans.length > 0;
@@ -181,23 +187,23 @@ function renderGuideCoachingCheckpoint(state = {}, currentStep = 1, sharedContex
       </div>
       <div>
         <dt>Main plan</dt>
-        <dd><span>${escapeText(context.mainPlanSummary || 'Add selected moves and abilities to reveal the main plan.')}</span></dd>
+        <dd><span>${escapeText(guide.mainPlanSummary || context.mainPlanSummary || 'Add selected moves and abilities to reveal the main plan.')}</span></dd>
       </div>
       <div>
         <dt>Core signals</dt>
-        <dd>${renderGuideContextList(context.coreSynergySignals, 'No strong core synergy signal is visible yet.')}</dd>
+        <dd>${renderGuideContextList(guide.coreSignals || context.coreSynergySignals, 'No strong core synergy signal is visible yet.')}</dd>
       </div>
       <div>
         <dt>Speed control</dt>
-        <dd>${renderGuideContextList(context.speedControlSources, 'No selected speed control source yet.')}</dd>
+        <dd>${renderGuideContextList(guide.speedControlSources || context.speedControlSources, 'No selected speed control source yet.')}</dd>
       </div>
       <div>
         <dt>Pressure</dt>
-        <dd>${renderGuideContextList(context.pressureSources, 'No clear pressure source selected yet.')}</dd>
+        <dd>${renderGuideContextList(guide.pressureSources || context.pressureSources, 'No clear pressure source selected yet.')}</dd>
       </div>
       <div>
         <dt>Watch out for</dt>
-        <dd>${renderGuideContextList(context.topDefensiveRisks, 'No major shared risk is visible yet.')}</dd>
+        <dd>${renderGuideContextList(guide.riskSummaries || context.topDefensiveRisks, 'No major shared risk is visible yet.')}</dd>
       </div>
       ${context.inactiveAbilityWarnings?.length ? `<div>
         <dt>Inactive ability</dt>
@@ -292,9 +298,10 @@ function renderMainIdeaLivePanel(context = null) {
 
   const archetype = context?.archetype || 'Unclear / Mixed Team';
   const confidence = context?.confidence ? ` <span class="badge">${escapeText(context.confidence)} confidence</span>` : '';
-  const planSummary = context?.mainPlanSummary || 'The team idea is still developing.';
-  const signals = buildMainIdeaSignals(context);
-  const pressure = (context?.pressureSources || []).slice(0, 4);
+  const guide = context?.tacticalPresentation?.guide || {};
+  const planSummary = guide.mainPlanSummary || context?.mainPlanSummary || 'The team idea is still developing.';
+  const signals = guide.mainIdeaSignals || buildMainIdeaSignals(context);
+  const pressure = (guide.pressureSources || context?.pressureSources || []).slice(0, 4);
 
   return `<section class="team-guide-section team-guide-main-idea-live tactical-secondary-panel">
     <div class="team-guide-main-idea-head">
@@ -397,10 +404,13 @@ function renderAddingToCoreLivePanel(context = null) {
     </section>`;
   }
 
-  const pieces = Array.isArray(context?.corePieces) && context.corePieces.length
-    ? context.corePieces
-    : buildFallbackCorePieces(context);
-  const cohesion = context?.coreCohesion || buildFallbackCoreCohesion(context, pieces);
+  const guide = context?.tacticalPresentation?.guide || {};
+  const pieces = Array.isArray(guide.corePieces) && guide.corePieces.length
+    ? guide.corePieces
+    : Array.isArray(context?.corePieces) && context.corePieces.length
+      ? context.corePieces
+      : buildFallbackCorePieces(context);
+  const cohesion = guide.coreCohesion && Object.keys(guide.coreCohesion).length ? guide.coreCohesion : (context?.coreCohesion || buildFallbackCoreCohesion(context, pieces));
 
   return `<section class="team-guide-section team-guide-main-idea-live tactical-secondary-panel">
     <div class="team-guide-main-idea-head">
@@ -460,31 +470,10 @@ function buildFallbackCoreCohesion(context = {}, pieces = []) {
 
 
 function renderCoreReadyStep(context = null) {
-  const filledSlots = Number(context?.teamCompleteness?.filledSlots || 0);
-  const archetype = context?.archetype || 'Unknown plan';
-  const supports = context?.coreCohesion?.supportsMainPlan || [];
-  const disconnected = context?.coreCohesion?.disconnectedPieces || [];
-  const offensiveReady = supports.length >= 2;
-  const speedReady = supports.some(v => /tailwind|trick room|speed|icy wind|paralysis/i.test(String(v)));
-  const supportReady = supports.length >= 1;
-  const planReady = filledSlots >= 3;
-  const defensiveRisks = disconnected.slice(0,2);
-
-  const checks = [
-    [planReady,'Clear main plan', planReady ? `Detected archetype: ${archetype}.` : 'Main plan is not fully established yet.'],
-    [offensiveReady,'Enough offensive pressure', offensiveReady ? 'The core shows multiple pressure signals.' : 'Add another way to convert support into damage.'],
-    [speedReady,'Enough speed control', speedReady ? 'Speed control signals were detected.' : 'Consider Tailwind, Trick Room, Icy Wind, priority, or similar tools.'],
-    [supportReady,'Enough support/disruption', supportReady ? 'Support pieces are contributing to the plan.' : 'The team needs more enabling or disruption.'],
-    [defensiveRisks.length === 0,'No major defensive concerns visible', defensiveRisks.length === 0 ? 'No obvious issue detected yet.' : defensiveRisks.join(' • ')],
-    [disconnected.length === 0,'No disconnected pieces', disconnected.length === 0 ? 'Every visible piece appears connected.' : disconnected.join(' • ')]
-  ];
-
-  const passed = checks.filter(c=>c[0]).length;
-  const verdict = passed >= 5
-    ? 'Core looks testable and supports a clear game plan.'
-    : passed >= 3
-      ? `Core looks testable, but ${defensiveRisks[0] || 'a few areas still need attention'}.`
-      : 'Core is not ready yet. The main plan still needs more structure.';
+  const guide = context?.tacticalPresentation?.guide || {};
+  const readiness = guide.readiness || { verdict: 'Core is not ready yet. The main plan still needs more structure.', checks: [] };
+  const checks = readiness.checks || [];
+  const verdict = readiness.verdict || 'Core is not ready yet. The main plan still needs more structure.';
 
   return `<section class="team-guide-section tactical-secondary-panel">
     <p class="eyebrow">Live readiness evaluation</p>
@@ -496,7 +485,7 @@ function renderCoreReadyStep(context = null) {
   <section class="team-guide-section">
     <h3>Core ready checklist</h3>
     <ul class="team-guide-question-list">
-      ${checks.map(([ok,title,detail])=>`<li>${ok ? '✅' : '⚠️'} <strong>${escapeText(title)}</strong> — ${escapeText(detail)}</li>`).join('')}
+      ${checks.map((check)=>`<li>${check.ok ? '✅' : '⚠️'} <strong>${escapeText(check.title)}</strong> — ${escapeText(check.detail)}</li>`).join('')}
     </ul>
   </section>
 
@@ -507,12 +496,10 @@ function renderCoreReadyStep(context = null) {
 }
 function renderRoundOutTeamStep(state) {
   const guideContext = state.__teamGuideContext || {};
-  const gaps = [];
-  if (!(guideContext.speedControlSources||[]).length) gaps.push('speed control');
-  if (!(guideContext.supportSources||[]).length) gaps.push('support/disruption');
-  if ((guideContext.pressureSources||[]).length < 2) gaps.push('secondary pressure');
-  if ((guideContext.disconnectedPieces||[]).length) gaps.push('cohesion support');
-  const gapText = gaps.length ? gaps.join(', ') : 'no major role gaps detected';
+  const guide = state.__teamGuideTacticalPresentation?.guide || guideContext.tacticalPresentation?.guide || {};
+  const roundOut = guide.roundOut || {};
+  const gaps = Array.isArray(roundOut.gaps) ? roundOut.gaps : [];
+  const gapText = roundOut.gapText || (gaps.length ? gaps.join(', ') : 'no major role gaps detected');
   return `<section class="team-guide-section"><h3>Fill out the Core</h3><p>This step now focuses on what your current team is still missing.</p><p><strong>Current gaps:</strong> ${escapeText(gapText)}.</p></section>
   <section class="team-guide-section"><h3>Recommended additions</h3><ul class="team-guide-question-list">
   ${gaps.includes('speed control')?'<li>Add a speed control piece that supports the existing gameplan rather than replacing it.</li>':''}
@@ -671,12 +658,8 @@ function renderStep6LiveChecklist(audit = {}) {
 }
 
 function renderStartTestingStep(guideContext = {}) {
-  const team = Array.isArray(guideContext.team) ? guideContext.team.filter(Boolean) : [];
-  const names = team.map((p) => getPokemonDisplayName?.(p) || p?.name || 'Pokémon').slice(0, 6);
-  const leadPairs = [];
-  for (let i = 0; i < Math.min(names.length, 4); i += 2) {
-    if (names[i + 1]) leadPairs.push([names[i], names[i + 1]]);
-  }
+  const guide = guideContext?.tacticalPresentation?.guide || {};
+  const leadPairs = Array.isArray(guide.testing?.leads) ? guide.testing.leads : [];
   const testing = learningTerm('testing', 'learning-testing-teams');
   const firstDraft = learningTerm('first draft', 'learning-first-drafts');
   const matchup = learningTerm('matchup', 'learning-matchups');
@@ -686,7 +669,7 @@ function renderStartTestingStep(guideContext = {}) {
   const iteration = learningTerm('iteration', 'learning-team-iteration');
   const winCondition = learningTerm('win condition', 'learning-win-conditions');
   const testingLog = learningTerm('testing log', 'learning-testing-log');
-  const leadSection = leadPairs.length ? `<section class="team-guide-section"><h3>Suggested lead pairs</h3><div class="learning-grid">${leadPairs.map((pair)=>`<article class="mini-card"><h4>${pair[0]} + ${pair[1]}</h4><p>Test this pairing as an opening option and record whether it consistently creates pressure, positioning, speed control, or setup opportunities for the rest of the team.</p></article>`).join('')}</div></section>` : '';
+  const leadSection = leadPairs.length ? `<section class="team-guide-section"><h3>Suggested lead pairs</h3><div class="learning-grid">${leadPairs.map((lead)=>`<article class="mini-card"><h4>${escapeText(lead.title)}</h4><p>${escapeText(lead.detail)}</p></article>`).join('')}</div></section>` : '';
   return `<section class="team-guide-section">
     <p>The ${firstDraft} of your team is unlikely to be the final draft.</p>
     <p>Up to this point, you have made educated guesses. You have imagined leads, matchups, support plans, damage pressure, ${speedControl}, and ${winCondition}s.</p>
@@ -726,9 +709,9 @@ function renderStartTestingStep(guideContext = {}) {
 
 
 function renderWeaknessExpandStep(state) {
- const guideContext = state.__teamGuideContext || {};
- const risks=(guideContext.topDefensiveRisks||[]).slice(0,3);
- return `<section class="team-guide-section"><h3>Practical risk ranking</h3>${risks.length?risks.map((r,i)=>`<article class="mini-card"><h4>#${i+1} ${escapeText(r)}</h4><p><strong>Who is exposed:</strong> Team members identified by the weakness analysis.</p><p><strong>Main plan impact:</strong> Evaluate whether this risk interrupts your primary win condition, speed control, or positioning.</p><p><strong>Possible answers:</strong> Resist, pivot, speed control, offensive pressure, or item/move adjustments.</p></article>`).join(''):'<p>No major risks detected yet.</p>'}</section>
+ const guide = state.__teamGuideTacticalPresentation?.guide || state.__teamGuideContext?.tacticalPresentation?.guide || {};
+ const risks = Array.isArray(guide.riskCards) ? guide.riskCards.slice(0, 3) : [];
+ return `<section class="team-guide-section"><h3>Practical risk ranking</h3>${risks.length?risks.map((risk)=>`<article class="mini-card"><h4>${escapeText(risk.title)}</h4><p><strong>${escapeText(risk.exposed)}</strong></p><p><strong>${escapeText(risk.impact)}</strong></p><p><strong>${escapeText(risk.answers)}</strong></p></article>`).join(''):'<p>No major risks detected yet.</p>'}</section>
  <section class="team-guide-section"><h3>How to use this checkpoint</h3><ul class="team-guide-question-list"><li>Prioritise risks that directly stop the main plan.</li><li>Fix recurring matchup problems before niche concerns.</li><li>Prefer solutions that add value in multiple matchups.</li></ul></section>`;
 }
 

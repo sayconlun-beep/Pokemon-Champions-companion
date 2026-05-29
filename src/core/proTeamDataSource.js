@@ -5,6 +5,20 @@ import { DATA_CACHE_VERSION } from '../data/dataLoader.js';
 
 export const PRO_TEAM_SOURCES = Object.freeze([
   {
+    id: 'game8',
+    label: 'Game8',
+    sourceSite: 'Game8',
+    homeUrl: 'https://game8.co/games/Pokemon-Champions/',
+    notes: 'Ranked battle guides, replica teams, and build references when available.'
+  },
+  {
+    id: 'pokemon-zone',
+    label: 'Pokemon Zone',
+    sourceSite: 'Pokemon Zone',
+    homeUrl: 'https://www.pokemon-zone.com/champions/',
+    notes: 'Metagame team cores, tournament aggregates, and build references when available.'
+  },
+  {
     id: 'victory-road',
     label: 'Victory Road',
     sourceSite: 'Victory Road',

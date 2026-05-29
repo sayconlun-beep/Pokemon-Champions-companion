@@ -1,5 +1,6 @@
 import { calculateSpeedTierSnapshot } from '../../utils/speedTierCalculator.js';
-import { buildTeamCoachingProfile, getSpeedControlSummary } from '../../logic/teamCoachingProfile.js';
+import { buildTeamCoachingProfile } from '../../logic/teamCoachingProfile.js';
+import { buildTacticalPresentation } from '../../logic/tacticalPresenter.js';
 
 export function SpeedControlPanel({ team = [], data = {}, context = 'analysis', coachingProfile = null } = {}) {
   const profile = coachingProfile || buildTeamCoachingProfile(team, { data });
@@ -10,9 +11,10 @@ export function SpeedControlPanel({ team = [], data = {}, context = 'analysis', 
   const priorityText = snapshot.priorityUsers.length
     ? snapshot.priorityUsers.slice(0, 3).map((entry) => `${entry.pokemon}: ${entry.move} (+${entry.priority})`).join(' · ')
     : 'No selected priority moves found.';
-  const profileSpeedRisks = Array.isArray(profile?.speedProfile?.risks) ? profile.speedProfile.risks : [];
-  const speedSummaryText = getSpeedControlSummary(profile);
-  const speedBullets = dedupeSpeedSnapshotLines([speedSummaryText, ...profileSpeedRisks]);
+  const speedPresentation = buildTacticalPresentation(profile, { page: 'speed-control', context }).speedControl;
+  const profileSpeedRisks = Array.isArray(speedPresentation?.risks) ? speedPresentation.risks : [];
+  const speedSummaryText = speedPresentation?.summary || 'No clear speed control has been selected yet.';
+  const speedBullets = dedupeSpeedSnapshotLines(speedPresentation?.bullets || [speedSummaryText, ...profileSpeedRisks]);
   const gapText = profileSpeedRisks.length ? dedupeSpeedSnapshotLines(profileSpeedRisks).join(' · ') : speedSummaryText;
   const panelClass = context === 'matchups' ? 'matchups-speed-control-surface optional-reference-surface' : 'speed-control-surface';
   const defaultOpenAttribute = context === 'matchups' ? '' : ' open';

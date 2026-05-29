@@ -6,6 +6,7 @@ import { normalizeTacticalText } from '../core/tacticalNormalization.js';
 import { normalizeDisplayText, normalizeDisplayList, normalizeDisplayLabel, normalizeThinEvidenceText, compressCoachingList, coachingConclusion, prioritySignalCount } from '../utils/tacticalTextNormalizer.js';
 import { dedupeTacticalLines, semanticMeaningKey } from '../utils/tacticalSemanticDeduper.js';
 import { buildTeamCoachingProfile } from '../logic/teamCoachingProfile.js';
+import { buildTacticalPresentation } from '../logic/tacticalPresenter.js';
 import { renderArchetypeBadge, renderGameplanCards, renderRiskSummary } from '../ui/teamCoachingRenderers.js';
 import { getPokemonDisplayName } from '../utils/formGrouping.js';
 import { getReadablePokemonName, getReadableAbilityName } from '../utils/displayNames.js';
@@ -50,6 +51,8 @@ const ADJACENT_MERGE_LABELS = new Set([
 
 export function AnalysisDeskPage(state) {
   const coachingProfile = buildTeamCoachingProfile(state.team, { data: state.data });
+  const analysisPressureCoverage = safeBuildAnalysisDeskPressureCoverage(state.team, state.data);
+  const tacticalPresentation = buildTacticalPresentation(coachingProfile, { page: 'analysis', analysisPressureCoverage });
   const weaknessEntries = coachingProfile.defensiveProfile?.rawWeaknessCoverage || [];
 
   const markup = `
@@ -65,11 +68,11 @@ export function AnalysisDeskPage(state) {
           <span class="badge tertiary-chip">${escapeText(coachingProfile.archetype?.primary || 'No archetype yet')}</span>
         </div>
       </header>
-      ${renderTeamStyleSection(coachingProfile)}
-      ${renderHowThisTeamPlaysSection(coachingProfile, state.team, state.data)}
-      ${renderPressureCoverageSection(state.team, state.data)}
-      ${renderWeaknessCoverageSection(weaknessEntries, state.team, state.data, coachingProfile)}
-      ${renderDefensiveGamePlanSection(weaknessEntries, state.team, coachingProfile, state.data)}
+      ${renderTeamStyleSection(tacticalPresentation, coachingProfile)}
+      ${renderHowThisTeamPlaysSection(tacticalPresentation, coachingProfile, state.team, state.data)}
+      ${renderPressureCoverageSection(tacticalPresentation)}
+      ${renderWeaknessCoverageSection(tacticalPresentation, weaknessEntries, state.team, state.data, coachingProfile)}
+      ${renderDefensiveGamePlanSection(tacticalPresentation, weaknessEntries, state.team, coachingProfile, state.data)}
       ${renderBuildNotesSection(state.team, state.data)}
       ${renderLearningHubAnalysisLink()}
     </section>`;
@@ -102,20 +105,23 @@ function escapeRegExp(value = '') {
   return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-function renderPressureCoverageSection(team = [], data = {}) {
-  let pressure;
+function safeBuildAnalysisDeskPressureCoverage(team = [], data = {}) {
   try {
-    pressure = buildAnalysisDeskPressureCoverage(team, data);
+    return buildAnalysisDeskPressureCoverage(team, data);
   } catch (error) {
     console.warn('Pressure coverage render failed.', error);
-    return '';
+    return { members: [], types: [] };
   }
-  if (!pressure.members.length) return '';
+}
+
+function renderPressureCoverageSection(presentation = {}) {
+  const pressure = presentation?.analysis?.pressureCoverage || {};
+  if (!Array.isArray(pressure.members) || !pressure.members.length) return '';
   return `<section class="analysis-section tactical-section-group pressure-coverage-analysis-section summary-surface">
-    <div class="section-heading-row team-style-heading-row"><div><h2>Pressure Coverage</h2></div></div>
-    <p class="section-summary">${escapeText(pressure.summary)}</p>
+    <div class="section-heading-row team-style-heading-row"><div><h2>${escapeText(pressure.title || 'Pressure Coverage')}</h2></div></div>
+    <p class="section-summary">${escapeText(pressure.summary || 'Selected moves decide which attacking types this team can pressure.')}</p>
     <div class="pressure-coverage-grid weakness-coverage-grid" aria-label="Team offensive pressure coverage">
-      ${pressure.types.map((entry) => renderPressureCoverageTile(entry)).join('')}
+      ${(pressure.types || []).map((entry) => renderPressureCoverageTile(entry)).join('')}
     </div>
   </section>`;
 }
@@ -237,25 +243,22 @@ const TYPE_COLORS = {
   Normal: '#A8A77A', Fire: '#EE8130', Water: '#6390F0', Electric: '#F7D02C', Grass: '#7AC74C', Ice: '#96D9D6', Fighting: '#C22E28', Poison: '#A33EA1', Ground: '#E2BF65', Flying: '#A98FF3', Psychic: '#F95587', Bug: '#A6B91A', Rock: '#B6A136', Ghost: '#735797', Dragon: '#6F35FC', Dark: '#705746', Steel: '#B7B7CE', Fairy: '#D685AD'
 };
 
-function renderHowThisTeamPlaysSection(profile = {}, team = [], data = {}) {
-  const plans = Array.isArray(profile?.gameplans)
-    ? profile.gameplans.filter((plan) => plan && (plan.title || plan.name || plan.advice || plan.summary))
-    : [];
-  const planLimit = Math.min(3, Math.max(1, plans.length || 1));
+function renderHowThisTeamPlaysSection(presentation = {}, profile = {}, team = [], data = {}) {
+  const gameplans = Array.isArray(presentation?.gameplans) ? presentation.gameplans : [];
   const sections = [
-    ['Speed control', profile.speedProfile?.summary || 'No speed control summary yet.'],
-    ['Weather / field plan', profile.weatherProfile?.summary || 'No weather plan selected yet.'],
-    ['Offensive profile', profile.offensiveProfile?.summary || 'No offensive profile yet.'],
-    ['Defensive profile', 'Use the Team Defense grid and Defensive Game Plan below to see the exact danger types and soft answers.']
+    ['Speed control', presentation?.summaries?.speedPlan || 'No speed control summary yet.'],
+    ['Weather / field plan', presentation?.summaries?.weatherPlan || 'No weather plan selected yet.'],
+    ['Offensive profile', presentation?.summaries?.offensivePlan || 'No offensive profile yet.'],
+    ['Defensive profile', presentation?.analysis?.defensiveGamePlan?.concern || presentation?.summaries?.defensivePlan || 'Use the Team Defense grid below to see the exact danger types and soft answers.']
   ];
-  const recommendations = Array.isArray(profile.recommendations) ? profile.recommendations.slice(0, 4) : [];
+  const recommendations = Array.isArray(presentation?.recommendations) ? presentation.recommendations.slice(0, 4) : [];
   const recommendationCard = recommendations.length
-    ? `<article class="mini-card team-style-detail-card"><h3>Next improvements</h3><ul>${recommendations.map((item) => `<li>${escapeText(firstSentence(item, 140))}</li>`).join('')}</ul></article>`
+    ? `<article class="mini-card team-style-detail-card"><h3>Next improvements</h3><ul>${recommendations.map((item) => `<li>${escapeText(firstSentence(item.text, 140))}</li>`).join('')}</ul></article>`
     : '';
 
   return `<section class="analysis-section tactical-section-group how-this-team-plays-section gameplans-analysis-section summary-surface">
     <div class="section-heading-row team-style-heading-row"><div><h2>How This Team Plays</h2></div></div>
-    ${renderGameplanCards(profile, { limit: planLimit, compact: false })}
+    ${renderPresenterGameplanCards(gameplans)}
     <details class="analysis-nested-expander team-breakdown-expander">
       <summary><span>Full breakdown</span><span class="muted">Speed, field plan, offense, defense, and next improvements</span></summary>
       <div class="team-style-detail-grid">
@@ -266,17 +269,29 @@ function renderHowThisTeamPlaysSection(profile = {}, team = [], data = {}) {
   </section>`;
 }
 
-function renderDefensiveGamePlanSection(weaknessEntries = [], team = [], coachingProfile = {}, data = {}) {
-  const entries = Array.isArray(weaknessEntries) ? weaknessEntries : [];
-  const concern = getTopWeaknessCoverageConcern(entries);
-  const softAnswers = detectWeaknessCoverageSoftAnswers(team);
-  const biggest = concern?.attackingType
-    ? `${concern.attackingType} is the biggest concern because ${concern.weakCount || 0} selected member${Number(concern.weakCount || 0) === 1 ? '' : 's'} are weak to it and only ${Number(concern.resistCount || 0) + Number(concern.immuneCount || 0)} resist or immune answer${Number(concern.resistCount || 0) + Number(concern.immuneCount || 0) === 1 ? '' : 's'} are present.`
-    : 'No single attacking type stands out yet. Finish the team to make this section more precise.';
-  const soft = formatSoftAnswerSummary(softAnswers) || 'No obvious soft answers are visible yet from typing, immunity, or resistance data.';
-  const lookFor = concern?.attackingType
-    ? `Use safer positioning into ${concern.attackingType} pressure: scout with Protect, avoid giving the opponent free repeated switches, and answer dangerous boards with offensive pressure before you are forced into predictable defensive plays.`
-    : 'Use safer positioning into pressure: scout with Protect, avoid giving the opponent free repeated switches, and answer dangerous boards with offensive pressure before you are forced into predictable defensive plays.';
+function renderPresenterGameplanCards(gameplans = []) {
+  const cards = (Array.isArray(gameplans) ? gameplans : []).slice(0, 3);
+  if (!cards.length) return '<p class="muted">Add more selected moves, abilities, and items so the app can identify the team plan from real evidence.</p>';
+  return `<div class="team-coaching-gameplans gameplan-card-grid">${cards.map((plan) => `<article class="mini-card team-style-detail-card gameplan-card">
+    <h3>${escapeText(plan.label || 'Team plan')}</h3>
+    ${plan.summary ? `<p>${escapeText(plan.summary)}</p>` : ''}
+    ${plan.advice && plan.advice !== plan.summary ? `<p class="muted">${escapeText(plan.advice)}</p>` : ''}
+    ${renderPresenterRoleLine('Enablers', plan.enablers)}
+    ${renderPresenterRoleLine('Converters', plan.abusers)}
+    ${renderPresenterRoleLine('Support', plan.support)}
+  </article>`).join('')}</div>`;
+}
+
+function renderPresenterRoleLine(label = '', names = []) {
+  const clean = Array.isArray(names) ? names.filter(Boolean).slice(0, 4) : [];
+  return clean.length ? `<p class="team-style-role-line"><b>${escapeText(label)}:</b> ${escapeText(clean.join(', '))}</p>` : '';
+}
+
+function renderDefensiveGamePlanSection(presentation = {}, weaknessEntries = [], team = [], coachingProfile = {}, data = {}) {
+  const plan = presentation?.analysis?.defensiveGamePlan || {};
+  const biggest = plan.concern || 'No single defensive concern stands out yet. Finish the team to make this section more precise.';
+  const soft = plan.softAnswers || 'Use typing, immunity, resistance, Protect turns, and offensive pressure as your current soft answers.';
+  const lookFor = plan.lookFor || 'Use safer positioning into pressure: scout with Protect, avoid repeated free switches, and answer dangerous boards before they become predictable.';
   return `<section class="analysis-section tactical-section-group defensive-game-plan-section what-this-means-section risk-callouts-analysis-section summary-surface">
     <div class="section-heading-row team-style-heading-row"><div><h2>Defensive Game Plan</h2></div></div>
     <div class="team-style-detail-grid">
@@ -284,33 +299,38 @@ function renderDefensiveGamePlanSection(weaknessEntries = [], team = [], coachin
       <article class="mini-card team-style-detail-card"><h3>Current soft answers</h3><p>${escapeText(soft)}</p></article>
       <article class="mini-card team-style-detail-card"><h3>What to look for</h3><p>${escapeText(lookFor)}</p></article>
     </div>
-    ${renderActionableRiskSummary(coachingProfile, team, { limit: 6, compact: false, showSeverity: true, data })}
+    ${renderActionableRiskSummary(presentation, team, { limit: 6, compact: false, showSeverity: true, data, sourceProfile: coachingProfile })}
   </section>`;
 }
 
-function renderActionableRiskSummary(profile = {}, team = [], options = {}) {
+function renderActionableRiskSummary(presentation = {}, team = [], options = {}) {
   const opts = { limit: 6, compact: false, showSeverity: true, ...options };
-  const risks = (Array.isArray(profile?.risks) ? profile.risks : [])
+  const plan = presentation?.analysis?.defensiveGamePlan || {};
+  const risks = (Array.isArray(plan?.risks) ? plan.risks : Array.isArray(presentation?.analysis?.risks) ? presentation.analysis.risks : Array.isArray(presentation?.risks) ? presentation.risks : [])
     .slice(0, opts.limit)
-    .filter((risk) => String(risk?.type || risk?.reason || risk?.beginnerAdvice || '').trim());
-  if (!risks.length) return opts.compact ? '' : '<p class="muted">No major defensive pressure stands out yet.</p>';
-  return `<div class="warning-stack team-coaching-risks actionable-risk-stack ${opts.compact ? 'compact' : ''}">${risks.map((risk) => {
-    const severity = risk.severity || 'Low';
-    const label = risk.type ? `${opts.showSeverity === false ? '' : `${severity} `}${risk.type} risk` : 'Team risk';
-    const text = firstSentence(risk.beginnerAdvice || risk.reason || 'Keep this matchup pressure in mind while positioning.', opts.compact ? 110 : 180);
-    const suggestion = getSuggestedSlotForRisk(risk, profile, team, opts.data || {});
+    .filter((risk) => String(risk?.display?.title || risk?.title || risk?.display?.summary || risk?.summary || '').trim());
+  if (!risks.length) return opts.compact ? '' : `<p class="muted">${escapeText(plan.actionableEmptyMessage || 'No major defensive pressure stands out yet.')}</p>`;
+  const title = plan.actionableTitle ? `<h3 class="actionable-risk-heading">${escapeText(plan.actionableTitle)}</h3>` : '';
+  return `${title}<div class="warning-stack team-coaching-risks actionable-risk-stack ${opts.compact ? 'compact' : ''}">${risks.map((risk) => {
+    const severity = risk.severity || risk.sourceRisk?.severity || 'Low';
+    const display = risk.display || {};
+    const label = display.title || risk.title || 'Team risk';
+    const text = firstSentence(display.summary || risk.summary || 'Keep this matchup pressure in mind while positioning.', opts.compact ? 110 : 180);
+    const suggestion = getSuggestedSlotForRisk(risk, opts.sourceProfile || {}, team, opts.data || {});
     return `<div class="${severity === 'High' ? 'warning' : 'notice'} actionable-risk-card"><p><strong>${escapeText(label)}:</strong> ${escapeText(text)}</p>${renderSuggestedSlotLine(suggestion)}</div>`;
   }).join('')}</div>`;
 }
 
-function getSuggestedSlotForRisk(risk = {}, profile = {}, team = [], data = {}) {
+function getSuggestedSlotForRisk(riskCard = {}, profile = {}, team = [], data = {}) {
+  const risk = riskCard.sourceRisk || riskCard || {};
+  const display = riskCard.display || {};
   if (risk?.type) {
-    return getSuggestedSlotForTypeWeakness(risk.type, profile?.defensiveProfile?.rawWeaknessCoverage || [], team, null, data);
+    return getSuggestedSlotForTypeWeakness(risk.type, profile?.defensiveProfile?.rawWeaknessCoverage || [], team, null, data, display);
   }
-  return getSuggestedSlotForRecommendation(risk?.reason || risk?.beginnerAdvice || '', profile, team, data);
+  return getSuggestedSlotForRecommendation(risk?.reason || risk?.beginnerAdvice || '', profile, team, data, display);
 }
 
-function getSuggestedSlotForRecommendation(text = '', profile = {}, team = [], data = {}) {
+function getSuggestedSlotForRecommendation(text = '', profile = {}, team = [], data = {}, display = {}) {
   const copy = String(text || '');
   const typeMatch = copy.match(/(?:into|against|from|for)\s+([A-Z][a-z]+)\s+(?:pressure|attacks|attackers|type)/i);
   if (typeMatch) return getSuggestedSlotForTypeWeakness(typeMatch[1], profile?.defensiveProfile?.rawWeaknessCoverage || [], team, null, data);
@@ -319,24 +339,22 @@ function getSuggestedSlotForRecommendation(text = '', profile = {}, team = [], d
     const choice = pickLeastUniqueRoleSlot(members);
     if (choice) return choice;
   }
-  return multipleSlotsSuggestion('Multiple slots affected — review the team holistically.');
+  return multipleSlotsSuggestion(display.multipleSlotText || 'Multiple slots affected — review the team holistically.');
 }
 
-function getSuggestedSlotForTypeWeakness(typeName = '', entries = [], team = [], directEntry = null, data = {}) {
+function getSuggestedSlotForTypeWeakness(typeName = '', entries = [], team = [], directEntry = null, data = {}, display = {}) {
   const entry = directEntry || (Array.isArray(entries) ? entries : []).find((item) => normalizeAnalysisDeskType(item?.attackingType) === normalizeAnalysisDeskType(typeName));
   const weakResults = (entry?.memberResults || []).filter((member) => member?.relation === 'weak');
   const weakNames = weakResults.map((member) => member.pokemonName || member.name).filter(Boolean);
   const weakIds = weakResults.map((member) => member.pokemonId || member.id).filter(Boolean);
   const members = buildAnalysisDeskMembers(team, entries, data);
   const weakMembers = members.filter((member) => weakNames.some((name) => normalizeName(name) === normalizeName(member.name)) || weakIds.some((id) => normalizeName(id) === normalizeName(member.id)));
-  if (!weakMembers.length) return multipleSlotsSuggestion('Multiple slots affected — review the team holistically.');
+  if (!weakMembers.length) return multipleSlotsSuggestion(display.multipleSlotText || 'Multiple slots affected — review the team holistically.');
   const scored = weakMembers.map((member) => ({ member, score: defensiveValueScore(member, entries) + roleUniquenessPenalty(member, members) }))
     .sort((a, b) => a.score - b.score || a.member.index - b.member.index);
   const chosen = scored[0]?.member;
-  if (!chosen) return multipleSlotsSuggestion('Multiple slots affected — review the team holistically.');
-  const overlap = findRoleOverlap(chosen, members);
-  const answerType = normalizeAnalysisDeskType(typeName) || typeName || 'this matchup';
-  const reason = `${answerType}-weak, contributes limited defensive switching value, and ${overlap ? `its ${overlap} role overlaps with ${overlapPartners(chosen, members, overlap)}` : 'it is the cleanest slot to adjust without breaking the core plan'}.`;
+  if (!chosen) return multipleSlotsSuggestion(display.multipleSlotText || 'Multiple slots affected — review the team holistically.');
+  const reason = display.suggestedSlotText || `${normalizeAnalysisDeskType(typeName) || typeName || 'This'}-weak slot; review whether that role can be adjusted without breaking the main plan.`;
   return slotSuggestion(chosen, reason);
 }
 
@@ -474,10 +492,11 @@ function renderLearningHubAnalysisLink() {
 }
 
 // SHARED PROFILE DISPLAY: renders raw coverage tiles supplied by buildTeamCoachingProfile.defensiveProfile.
-function renderWeaknessCoverageSection(profile = [], team = [], data = {}, coachingProfile = null) {
+function renderWeaknessCoverageSection(presentation = {}, profile = [], team = [], data = {}, coachingProfile = null) {
   try {
     const indexedData = ensureAnalysisDeskPokemonIndex(data);
     const selectedTeam = getAnalysisDeskSelectedTeam(team);
+    const coverageDisplay = presentation?.analysis?.weaknessCoverage || {};
     const suppliedEntries = Array.isArray(profile) ? profile : [];
     const entries = hasUsableWeaknessCoverageEntries(suppliedEntries, selectedTeam)
       ? suppliedEntries
@@ -492,15 +511,15 @@ function renderWeaknessCoverageSection(profile = [], team = [], data = {}, coach
       <details class="analysis-cluster weakness-coverage-cluster" data-analysis-section="weakness-coverage" open>
         <summary class="section-toolbar-header">
           <div class="section-toolbar-copy">
-            <h2>Weakness Coverage</h2>
-            <p class="section-summary">A quick view of which attacking types your team handles well and which ones may need safer answers.</p>
-            <p class="section-collapsed-preview">Type weakness coverage tiles available.</p>
+            <h2>${escapeText(coverageDisplay.title || 'Weakness Coverage')}</h2>
+            <p class="section-summary">${escapeText(coverageDisplay.summary || 'A quick view of which attacking types your team handles well and which ones may need safer answers.')}</p>
+            <p class="section-collapsed-preview">${escapeText(coverageDisplay.collapsedPreview || 'Type weakness coverage tiles available.')}</p>
           </div>
         </summary>
         <div class="analysis-collapse-body">
-          ${renderWeaknessCoverageCoachingSummary(entries, team, coachingProfile)}
+          ${renderWeaknessCoverageCoachingSummary(coverageDisplay)}
           <div class="weakness-coverage-grid">
-            ${sortWeaknessCoverageTiles(entries).map((entry) => renderWeaknessCoverageTile(entry, team)).join('')}
+            ${sortWeaknessCoverageTiles(entries).map((entry) => renderWeaknessCoverageTile(entry, team, coverageDisplay?.byType?.[entry.attackingType])).join('')}
           </div>
         </div>
       </details>
@@ -596,9 +615,11 @@ function normalizeAnalysisDeskType(value = '') {
   return validTypes.find((type) => type.toLowerCase() === clean) || '';
 }
 
-// SHARED PROFILE DISPLAY: keeps the scan-friendly Weakness Coverage explanation tied to raw coverage facts and shared profile risks.
-function renderWeaknessCoverageCoachingSummary(profile = [], team = [], coachingProfile = null) {
-  return '';
+// PRESENTER DISPLAY: keeps the scan-friendly Weakness Coverage explanation tied to canonical presenter strings.
+function renderWeaknessCoverageCoachingSummary(coverageDisplay = {}) {
+  return coverageDisplay?.coachingSummary
+    ? `<p class="section-summary weakness-coverage-coaching-summary">${escapeText(coverageDisplay.coachingSummary)}</p>`
+    : '';
 }
 
 // RAW CALCULATION SORTING: chooses the highest-severity raw coverage entry for display.
@@ -683,7 +704,7 @@ function competitiveTypePriority(typeName = '') {
 }
 
 // UI RENDERER: displays one raw weakness coverage tile.
-function renderWeaknessCoverageTile(entry = {}, team = []) {
+function renderWeaknessCoverageTile(entry = {}, team = [], display = {}) {
   const status = normalizeWeaknessCoverageStatus(entry.classification);
   const typeName = entry.attackingType || 'Unknown';
   const detailGroups = weaknessCoverageDetailGroups(entry);
@@ -692,7 +713,7 @@ function renderWeaknessCoverageTile(entry = {}, team = []) {
   const metricClass = score > 0 ? 'metric-positive' : score < 0 ? 'metric-negative' : 'metric-neutral';
   const metric = score > 0 ? `+${score}` : `${score}`;
   const isActionable = status !== 'Covered';
-  const detailMarkup = isActionable ? renderWeaknessCoverageActionDetails(entry, detailGroups, team) : renderCoveredWeaknessCoverageDetails(entry, detailGroups);
+  const detailMarkup = isActionable ? renderWeaknessCoverageActionDetails(entry, detailGroups, team, display) : renderCoveredWeaknessCoverageDetails(entry, detailGroups, display);
 
   return `
     <article class="type-heatmap-tile weakness-coverage-tile ${weaknessCoverageToneClass(status)} ${isActionable ? 'coverage-actionable' : 'coverage-safe'}" style="--type-color: ${escapeAttr(TYPE_COLORS[typeName] || '#64748b')}" title="${escapeText(hoverText)}">
@@ -732,25 +753,18 @@ function renderWeaknessCoverageInlineGroups(detailGroups = {}) {
 
 
 // UI RENDERER: expands one raw weakness coverage tile with practical detail.
-function renderWeaknessCoverageActionDetails(entry = {}, detailGroups = {}, team = []) {
+function renderWeaknessCoverageActionDetails(entry = {}, detailGroups = {}, team = [], display = {}) {
   const typeName = entry.attackingType || 'this type';
   const status = normalizeWeaknessCoverageStatus(entry.classification);
-  const softAnswers = detectWeaknessCoverageSoftAnswers(team);
-  const softText = formatSoftAnswerSummary(softAnswers);
-  const why = status === 'Exposed'
-    ? describeWeaknessCoverageConcern(entry)
-    : describeNeedsAttentionWeaknessCoverage(entry);
-  const answerAdvice = weaknessCoverageAnswerAdvice(typeName);
-  const supportAdvice = weaknessCoverageSupportAdvice(softAnswers);
   const suggestion = getSuggestedSlotForTypeWeakness(typeName, [entry], team, entry);
 
   return `
         <div class="type-heatmap-detail-panel weakness-coverage-detail-body" aria-label="${escapeText(typeName)} coverage details">
-          <p><b>Why:</b> ${escapeText(status === 'Exposed' ? `${typeName} has limited safe switch-ins` : `${typeName} pressure needs attention`)}. ${escapeText(why)}.</p>
-          <p><b>Current defensive profile:</b> ${escapeText(Number(entry.resistCount || 0))} resist, ${escapeText(Number(entry.immuneCount || 0))} immune, ${escapeText(Number(entry.weakCount || 0))} weak.</p>
-          <p><b>Look for:</b> ${escapeText(answerAdvice || `a safer switch-in, offensive pressure into ${typeName}-types, or support that helps your team avoid taking clean hits.`)}</p>
-          ${softText ? `<p><b>Soft answers already present:</b> ${escapeText(softText)}. These can help, but they do not fully replace a safe switch-in.</p>` : ''}
-          <p><b>Useful support:</b> ${escapeText(supportAdvice)}</p>
+          <p><b>Why:</b> ${escapeText(display?.why || `${status === 'Exposed' ? `${typeName} has limited safe switch-ins` : `${typeName} pressure needs attention`}.`)}</p>
+          <p><b>Current defensive profile:</b> ${escapeText(display?.currentProfile || `${Number(entry.resistCount || 0)} resist, ${Number(entry.immuneCount || 0)} immune, ${Number(entry.weakCount || 0)} weak.`)}</p>
+          <p><b>Look for:</b> ${escapeText(display?.lookFor || `a safer switch-in, offensive pressure into ${typeName}-types, or support that helps your team avoid taking clean hits.`)}</p>
+          ${display?.softAnswersText ? `<p><b>Soft answers already present:</b> ${escapeText(display.softAnswersText)}</p>` : ''}
+          <p><b>Useful support:</b> ${escapeText(display?.usefulSupport || 'Protect, speed control, Fake Out, redirection, Intimidate, or status can buy safer turns while you look for a better answer.')}</p>
           ${renderSuggestedSlotLine(suggestion)}
           <a class="secondary-button compact weakness-answer-link" href="/metadex?answerType=${escapeAttr(typeName)}" data-route="metadex" data-metadex-answer-type="${escapeAttr(typeName)}">Find answers in MetaDex</a>
           <p><b>Weak:</b> ${escapeText(detailGroups.weak)}</p>
@@ -762,10 +776,10 @@ function renderWeaknessCoverageActionDetails(entry = {}, detailGroups = {}, team
 }
 
 // UI RENDERER: expands one covered weakness coverage tile.
-function renderCoveredWeaknessCoverageDetails(entry = {}, detailGroups = {}) {
+function renderCoveredWeaknessCoverageDetails(entry = {}, detailGroups = {}, display = {}) {
   return `
         <div class="type-heatmap-detail-panel weakness-coverage-detail-body">
-          <p>${escapeText(entry.attackingType || 'This type')} is reasonably covered. ${escapeText(describeWeaknessCoverageStrength(entry))}.</p>
+          <p>${escapeText(display?.coveredSummary || `${entry.attackingType || 'This type'} is reasonably covered.`)}</p>
           <p><b>Resist:</b> ${escapeText(detailGroups.resist)}</p>
           <p><b>Immune:</b> ${escapeText(detailGroups.immune)}</p>
           <p><b>Weak:</b> ${escapeText(detailGroups.weak)}</p>
@@ -908,26 +922,26 @@ function weaknessCoverageCountSummary(entry = {}) {
   return parts.join(' / ');
 }
 
-// SHARED PROFILE DISPLAY: renders team identity from buildTeamCoachingProfile only.
-function renderTeamStyleSection(profile = {}) {
-  const archetype = profile.archetype || {};
-  const reasons = Array.isArray(archetype.reasons) && archetype.reasons.length ? archetype.reasons : ['Add selected moves, abilities, and items so the app can read the team plan from real evidence.'];
-  const hasReasons = reasons.some((item) => sanitizeText(item));
+// SHARED PROFILE DISPLAY: renders canonical team identity from the tactical presenter.
+function renderTeamStyleSection(presentation = {}, profile = {}) {
+  const reasons = Array.isArray(presentation?.archetype?.reasons) && presentation.archetype.reasons.length
+    ? presentation.archetype.reasons
+    : ['Add selected moves, abilities, and items so the app can read the team plan from real evidence.'];
   const detailCards = [
-    hasReasons ? `<article class="mini-card team-style-detail-card"><h3>Why this was detected</h3><ul>${reasons.slice(0, 4).map((item) => `<li>${escapeText(item)}</li>`).join('')}</ul></article>` : ''
+    reasons.length ? `<article class="mini-card team-style-detail-card"><h3>Why this was detected</h3><ul>${reasons.slice(0, 4).map((item) => `<li>${escapeText(item)}</li>`).join('')}</ul></article>` : ''
   ].filter(Boolean);
   return `<section class="analysis-section tactical-section-group team-style-section summary-surface">
     <div class="section-heading-row team-style-heading-row">
       <div><h2>Team Archetype</h2></div>
       <div class="team-style-badges">${renderArchetypeBadge(profile, { compact: true })}</div>
     </div>
-    <p class="section-summary team-style-summary">${escapeText(profile.coaching?.beginnerSummary || 'Start by choosing a Pokémon or core.')}</p>
+    <p class="section-summary team-style-summary">${escapeText(presentation?.summaries?.analysisOverview || presentation?.summaries?.teamIdentity || 'Start by choosing a Pokémon or core.')}</p>
     ${detailCards.length ? `<div class="team-style-detail-grid ${detailCards.length === 1 ? 'single-card' : ''}">${detailCards.join('')}</div>` : ''}
   </section>`;
 }
 
 function renderSharedAnalysisProfileSections(profile = {}, team = [], data = {}) {
-  return renderHowThisTeamPlaysSection(profile, team, data);
+  return renderHowThisTeamPlaysSection(buildTacticalPresentation(profile, { page: 'analysis' }), profile, team, data);
 }
 
 

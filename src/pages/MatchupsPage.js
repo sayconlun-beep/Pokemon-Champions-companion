@@ -7,7 +7,7 @@ import { SpeedControlPanel } from '../components/analysis/SpeedControlPanel.js';
 import { getPokemonDisplayName, getPokemonSearchAliases } from '../utils/formGrouping.js';
 import { getReadablePokemonName } from '../utils/displayNames.js';
 import { buildTeamCoachingProfile } from '../logic/teamCoachingProfile.js';
-import { getPilotTipDisplayTitle, renderPilotTips, renderLeadAnalysis } from '../ui/teamCoachingRenderers.js';
+import { buildTacticalPresentation } from '../logic/tacticalPresenter.js';
 
 const THREAT_PATTERNS = [
   ['Speed-control inversion', /speed|tailwind|trick room|tempo|priority/i],
@@ -22,7 +22,16 @@ export function MatchupsPage(state) {
   const selectedMembers = getSelectedMembers(state);
   const coachingProfile = buildTeamCoachingProfile(state.team, { data: state.data });
   const planner = buildBattleScenarioPlanner(state, selectedMembers, coachingProfile);
-  const model = buildMatchupModel(null, selectedMembers, coachingProfile, planner.selectedOpponent);
+  const tacticalPresentation = buildTacticalPresentation(coachingProfile, {
+    page: 'matchups',
+    selectedOpponentName: planner.selectedLabel,
+    selectedOpponentTypes: planner.selectedOpponent ? pokemonTypes(planner.selectedOpponent) : [],
+    scenarioRecommendations: planner.recommendations.map((item) => ({
+      ...item,
+      displayName: item?.pokemon ? getPokemonDisplayName(item.pokemon) : ''
+    }))
+  });
+  const model = buildMatchupModel(null, selectedMembers, coachingProfile, planner.selectedOpponent, tacticalPresentation);
 
   return `
     <section class="page-stack matchups-page">
@@ -39,9 +48,9 @@ export function MatchupsPage(state) {
         </div>
       </header>
 
-      ${renderOpeningPlans(coachingProfile)}
-      ${renderPrimaryMatchupRisks(model.primaryRisks, coachingProfile, planner.selectedOpponent)}
-      ${renderBattleTips(model.battleTips, coachingProfile, planner.selectedOpponent, selectedMembers, planner.recommendations)}
+      ${renderOpeningPlans(tacticalPresentation)}
+      ${renderPrimaryMatchupRisks(model.primaryRisks)}
+      ${renderBattleTips(model.battleCoaching)}
       ${SpeedControlPanel({ team: state.team, data: state.data, context: 'matchups', coachingProfile })}
       ${renderBattleScenarioPlanner(planner)}
       ${renderOpponentThreatHandling(model)}
@@ -50,9 +59,9 @@ export function MatchupsPage(state) {
 
 
 
-function renderOpeningPlans(coachingProfile = {}) {
-  const hasLeads = Array.isArray(coachingProfile?.coaching?.recommendedLeads) && coachingProfile.coaching.recommendedLeads.length > 0;
-  if (!hasLeads) return '';
+function renderOpeningPlans(tacticalPresentation = {}) {
+  const leads = Array.isArray(tacticalPresentation?.leads) ? tacticalPresentation.leads.slice(0, 4) : [];
+  if (!leads.length) return '';
   return `<section class="card tactical-secondary-panel opening-plans-section" aria-labelledby="opening-plans-title">
     <div class="workspace-section-head section-toolbar-header">
       <div class="section-toolbar-copy">
@@ -61,7 +70,19 @@ function renderOpeningPlans(coachingProfile = {}) {
         <p class="section-summary">Recommended opening pairs and early-game sequencing based on the current team structure.</p>
       </div>
     </div>
-    ${renderLeadAnalysis(coachingProfile, { showHeading: false, compact: true, labelMode: 'openingPlans', limit: 4 })}
+    <div class="lead-analysis-grid compact-lead-analysis">
+      ${leads.map((lead) => `<article class="lead-analysis-card">
+        <div class="lead-analysis-card-head">
+          <h3>${escapeText(lead.title)}</h3>
+          <span class="badge tertiary-chip">${escapeText(lead.members.join(' + '))}</span>
+        </div>
+        <ul class="lead-analysis-list">
+          ${lead.turnOne ? `<li><strong>Turn 1</strong><span>${escapeText(lead.turnOne)}</span></li>` : ''}
+          ${lead.watchOut ? `<li><strong>Watch out for</strong><span>${escapeText(lead.watchOut)}</span></li>` : ''}
+          ${lead.backHalf ? `<li><strong>Your back half</strong><span>${escapeText(lead.backHalf)}</span></li>` : ''}
+        </ul>
+      </article>`).join('')}
+    </div>
   </section>`;
 }
 
@@ -417,19 +438,15 @@ function inferOpponentRiskTitle(card = {}) {
 }
 
 // SHARED PROFILE DISPLAY: combines opponent-specific evidence with buildTeamCoachingProfile for shared team tips/risks.
-function buildMatchupModel(_analysis, members, coachingProfile = null, selectedOpponent = null) {
-  const profileRisks = (coachingProfile?.risks || []).slice(0, 4);
-  const primaryRisks = profileRisks.length
-    ? profileRisks.map((risk) => ({
-        title: `${risk.severity} ${risk.type} pressure`,
-        question: `${risk.severity} ${risk.type} pressure`,
-        answer: risk.beginnerAdvice,
-        label: risk.reason,
-        details: [risk.beginnerAdvice],
-        severity: risk.severity
-      }))
-    : buildPrimaryMatchupRisks([], [], members);
-  const battleTips = buildSharedPilotTips(coachingProfile);
+function buildMatchupModel(_analysis, members, coachingProfile = null, selectedOpponent = null, tacticalPresentation = null) {
+  const primaryRisks = Array.isArray(tacticalPresentation?.matchup?.primaryRisks)
+    ? tacticalPresentation.matchup.primaryRisks
+    : [];
+  const battleCoaching = tacticalPresentation?.matchup?.battleCoaching || {
+    items: tacticalPresentation?.matchup?.battleTips || [],
+    emptyMessage: tacticalPresentation?.matchup?.emptyBattlePrompt || 'Choose an opposing Pokémon in the Battle Scenario Planner to generate matchup-specific coaching cards.'
+  };
+  const battleTips = Array.isArray(battleCoaching.items) ? battleCoaching.items : [];
   const readinessScore = calculateSharedReadinessScore(coachingProfile, members.length);
   return {
     overview: {
@@ -439,12 +456,13 @@ function buildMatchupModel(_analysis, members, coachingProfile = null, selectedO
       conversionRoute: coachingProfile?.winConditions?.[0]?.label || 'Select a fuller team to expose conversion routing',
       readinessScore,
       missingCount: coachingProfile?.completeness?.missingSlots || 0,
-      summary: getSharedMatchupsSummary(coachingProfile, selectedOpponent)
+      summary: tacticalPresentation?.matchup?.overview || 'Pick an opposing Pokémon below to turn this shared plan into matchup-specific preparation.'
     },
     tags: buildSharedMatchupTags(coachingProfile, readinessScore, members),
     pressureThreats: [],
     collapseRisks: [],
     primaryRisks,
+    battleCoaching: { ...battleCoaching, items: battleTips },
     battleTips,
     recoveryStability: [],
     conversionRoutes: [],
@@ -565,130 +583,28 @@ function buildPrepPriorities(coachingCards, matchupCards, members) {
 }
 
 
-// SHARED PROFILE DISPLAY: adapts profile.coaching.pilotTips for the Matchups page.
-function buildSharedPilotTips(coachingProfile = null) {
-  return (coachingProfile?.coaching?.pilotTips || [])
-    .map((tip) => {
-      const detail = typeof tip === 'string' ? tip : (tip?.body || tip?.description || tip?.detail || tip?.text || '');
-      const title = getPilotTipDisplayTitle(tip, 'Pilot tip');
-      return { title, detail };
-    })
-    .filter((tip) => String(tip.title || '').trim() && String(tip.detail || '').trim())
-    .slice(0, 6);
-}
-
-function isBattleTipAllowed(value = '') {
-  const text = String(value || '').toLowerCase();
-  return !/(main\s+attacker|main\s+cleaner|cleaner label|win-condition label|defensive\s+backbone|support\s+role|one of your main\s+attackers|should be treated as|preserve .* win condition|important pok[eé]mon to protect|role summary|speed-control shell|pressure\s+identity|matchup-ready structure|tactical\s+pacing|positioning\s+pressure)/.test(text);
-}
-
-function normalizePilotTipCard(item) {
-  if (!item || typeof item !== 'object') return null;
-  const title = String(item.title || item.label || '').trim();
-  const detail = String(item.detail || item.description || item.body || '').trim();
-  if (!title || !detail) return null;
-  if (!isBattleTipAllowed(`${title} ${detail}`)) return null;
-
-  const lower = `${title} ${detail}`.toLowerCase();
-  const opponentReactive = /(opponent|enemy|threat|against|versus|vs\.|lead|switch|matchup|pressure|attack|type)/i.test(lower);
-  if (!opponentReactive) return null;
-
-  return {
-    title: title.replace(/speed control/ig, 'Speed positioning'),
-    detail
-  };
-}
-
 // MATCHUPS UNIVERSAL RULES: Battle Coaching is opponent-reactive only.
-function renderBattleTips(items = [], coachingProfile = null, selectedOpponent = null, members = [], recommendations = []) {
-  const visible = buildOpponentReactiveBattleTips(coachingProfile, selectedOpponent, members, recommendations, items);
+function renderBattleTips(battleCoaching = {}) {
+  const visible = Array.isArray(battleCoaching?.items) ? battleCoaching.items : [];
+  const emptyMessage = battleCoaching?.emptyMessage || 'Choose an opposing Pokémon in the Battle Scenario Planner to generate matchup-specific coaching cards.';
+  const kicker = battleCoaching?.kicker || 'Battle coaching';
+  const title = battleCoaching?.title || 'Battle Coaching';
+  const summary = battleCoaching?.summary || 'Opponent-reactive matchup advice only. General team strategy stays on the Analysis Desk.';
 
   return `
     <section class="card battle-tips-section tactical-secondary-panel" aria-labelledby="battle-tips-title">
       <div class="workspace-section-head section-toolbar-header matchup-cluster-head">
         <div class="section-toolbar-copy">
-          <span class="section-kicker">Battle coaching</span>
-          <h2 id="battle-tips-title">Battle Coaching</h2>
-          <p class="section-summary">Opponent-reactive matchup advice only. General team strategy stays on the Analysis Desk.</p>
+          <span class="section-kicker">${escapeText(kicker)}</span>
+          <h2 id="battle-tips-title">${escapeText(title)}</h2>
+          <p class="section-summary">${escapeText(summary)}</p>
         </div>
       </div>
       ${visible.length ? `<div class="battle-tip-grid">
         ${visible.map((item) => `<article class="battle-tip-card"><h3>${escapeText(item.title)}</h3><p>${escapeText(item.detail)}</p></article>`).join('')}
-      </div>` : `<p class="muted battle-tip-empty">Choose an opposing Pokémon in the Battle Scenario Planner to generate matchup-specific coaching cards.</p>`}
+      </div>` : `<p class="muted battle-tip-empty">${escapeText(emptyMessage)}</p>`}
     </section>`;
 }
-
-function buildOpponentReactiveBattleTips(coachingProfile = null, selectedOpponent = null, members = [], recommendations = [], fallbackItems = []) {
-  if (!selectedOpponent) return [];
-  const opponentName = getPokemonDisplayName(selectedOpponent);
-  const opponentTypes = pokemonTypes(selectedOpponent);
-  const best = recommendations.find((item) => item.tier !== 'avoid') || recommendations[0];
-  const risky = recommendations.filter((item) => item.tier === 'avoid').slice(0, 2);
-  const cards = [];
-
-  if (best?.pokemon) {
-    cards.push({
-      title: `Best answer into ${opponentName}`,
-      detail: `${getPokemonDisplayName(best.pokemon)} is your safest immediate answer into ${opponentName}. ${best.explanation || 'Use it to steady the board before committing your main damage route.'}`
-    });
-  }
-
-  const speedText = getOpponentReactiveSpeedTip(coachingProfile, selectedOpponent);
-  if (speedText) cards.push({ title: `Speed plan into ${opponentName}`, detail: speedText });
-
-  const disruptionText = getOpponentReactiveDisruptionTip(coachingProfile, selectedOpponent);
-  if (disruptionText) cards.push({ title: `Disruption into ${opponentName}`, detail: disruptionText });
-
-  if (opponentTypes.length && risky.length) {
-    cards.push({
-      title: `Positioning risk into ${opponentName}`,
-      detail: `${opponentName}'s ${opponentTypes.join(' / ')} typing makes direct positioning awkward for ${risky.map((item) => getPokemonDisplayName(item.pokemon)).join(' or ')}. Use Protect, a pivot turn, or your safer answer before exposing them.`
-    });
-  }
-
-  if (!cards.length) {
-    (fallbackItems || []).map(normalizePilotTipCard).filter(Boolean).forEach((item) => {
-      cards.push({ title: `${item.title} vs ${opponentName}`, detail: `${item.detail} Apply this specifically around ${opponentName}'s ${opponentTypes.join(' / ') || 'known'} pressure.` });
-    });
-  }
-
-  return dedupeBattleCoachingCards(cards).slice(0, 4);
-}
-
-function getOpponentReactiveSpeedTip(profile = {}, opponent = null) {
-  const opponentName = opponent ? getPokemonDisplayName(opponent) : 'the opponent';
-  const sources = (profile?.teamFunctions?.speedControl || []).map((x) => x.pokemon || x.name).filter(Boolean);
-  if (!sources.length) return '';
-  const mode = profile?.speedProfile?.mode || 'speed control';
-  return `${sources.slice(0, 2).join(' or ')} gives you ${mode} into ${opponentName}. Treat Icy Wind, Tailwind, Trick Room, paralysis, and priority as speed positioning tools — not spread damage pressure.`;
-}
-
-function getOpponentReactiveDisruptionTip(profile = {}, opponent = null) {
-  const opponentName = opponent ? getPokemonDisplayName(opponent) : 'the opponent';
-  const disruption = [
-    ...(profile?.teamFunctions?.fakeOut || []),
-    ...(profile?.teamFunctions?.disruption || []),
-    ...(profile?.teamFunctions?.intimidate || [])
-  ].map((x) => x.pokemon || x.name).filter(Boolean);
-  if (!disruption.length) return '';
-  return `${uniq(disruption).slice(0, 2).join(' or ')} can buy tempo into ${opponentName}. Use these turns to deny actions, lower damage, or reset positioning rather than treating them as raw damage pressure.`;
-}
-
-function dedupeBattleCoachingCards(cards = []) {
-  const seenTitles = new Set();
-  const seenBodies = new Set();
-  return cards.filter((card) => {
-    if (!card?.title || !card?.detail) return false;
-    if (/avoid switching .* into .* attacks/i.test(`${card.title} ${card.detail}`)) return false;
-    const titleKey = card.title.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
-    const bodyKey = card.detail.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
-    if (seenTitles.has(titleKey) || seenBodies.has(bodyKey)) return false;
-    seenTitles.add(titleKey);
-    seenBodies.add(bodyKey);
-    return true;
-  });
-}
-
 
 // OPPONENT-SPECIFIC SCENARIO LOGIC: fallback only when shared profile risks are unavailable.
 // OPPONENT-SPECIFIC SCENARIO LOGIC: fallback enemy-risk briefing when profile.risks are unavailable.
@@ -911,23 +827,7 @@ function inferCommonRiskContext(value = '') {
 }
 
 // MATCHUPS UNIVERSAL RULES: risks add matchup context beyond Analysis Desk defensive callouts.
-function renderPrimaryMatchupRisks(items = [], coachingProfile = null, selectedOpponent = null) {
-  const contextualRisks = buildContextualMatchupRisks(coachingProfile, selectedOpponent);
-  if (contextualRisks.length) {
-    return `
-    <section class="tactical-section-group matchup-cluster primary-matchup-risks risk-surface">
-      <div class="workspace-section-head section-toolbar-header matchup-cluster-head">
-        <div class="section-toolbar-copy">
-          <span class="section-kicker">Risk briefing</span>
-          <h2>Primary Matchup Risks</h2>
-          <p class="section-summary">Matchup-context risks only; copied Analysis Desk warnings are omitted unless they add positioning or lead-selection context.</p>
-        </div>
-      </div>
-      <ul class="primary-risk-list">
-        ${contextualRisks.map((item) => `<li><strong>${escapeText(item.question)}</strong><span>${escapeText(item.answer)}</span></li>`).join('')}
-      </ul>
-    </section>`;
-  }
+function renderPrimaryMatchupRisks(items = []) {
   const visibleItems = (items || []).filter((item) => item && item.answer);
   const isEmpty = !visibleItems.length || visibleItems.every((item) => item.empty);
   if (isEmpty) {
@@ -950,14 +850,15 @@ function renderPrimaryMatchupRisks(items = [], coachingProfile = null, selectedO
         <div class="section-toolbar-copy">
           <span class="section-kicker">Risk briefing</span>
           <h2>Primary Matchup Risks</h2>
-          <p class="section-summary">Shows opposing threats only, so your team’s win-condition advice stays separate.</p>
+          <p class="section-summary">Matchup-context risks only; copied Analysis Desk warnings are omitted unless they add positioning or lead-selection context.</p>
         </div>
       </div>
       <ul class="primary-risk-list">
-        ${visibleItems.map((item) => `<li><strong>${escapeText(item.question)}</strong><span>${escapeText(formatPrimaryRiskAnswer(item.question, item.answer))}</span></li>`).join('')}
+        ${visibleItems.map((item) => `<li><strong>${escapeText(item.question || item.title)}</strong><span>${escapeText(item.answer)}</span></li>`).join('')}
       </ul>
     </section>`;
 }
+
 
 
 // OPPONENT-SPECIFIC SCENARIO LOGIC: renders selected opponent/threat handling rows.

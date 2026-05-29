@@ -8,7 +8,7 @@ export function scrollSelectedMetadexIntoView(root) {
   if (!isMetaDexMobileViewport()) return;
   window.requestAnimationFrame(() => {
     window.requestAnimationFrame(() => {
-      const selectedDetail = root.querySelector('.metadex-selected-detail-panel');
+      const selectedDetail = root.querySelector('.metadex-detail-overlay-panel') || root.querySelector('.metadex-detail-overlay');
       const selectedTile = root.querySelector('.metadex-grid .metadex-tile.active');
       const scrollTarget = selectedDetail || selectedTile;
       if (!scrollTarget) return;
@@ -19,6 +19,17 @@ export function scrollSelectedMetadexIntoView(root) {
         behavior: prefersReducedMotion ? 'auto' : 'smooth'
       });
     });
+  });
+}
+
+
+export function focusSelectedMetadexDetail(root) {
+  window.requestAnimationFrame(() => {
+    const detailPanel = root.querySelector('.metadex-detail-overlay-panel') || root.querySelector('.metadex-layout > .metadex-detail-panel');
+    if (!detailPanel) return;
+    detailPanel.setAttribute('tabindex', '-1');
+    detailPanel.focus?.({ preventScroll: true });
+    detailPanel.querySelector('[data-action="close-metadex-detail"]')?.focus?.({ preventScroll: true });
   });
 }
 

@@ -1,4 +1,5 @@
 import { buildTeamCoachingProfile } from '../../logic/teamCoachingProfile.js';
+import { buildProTeamStudyPresentation } from '../../logic/tacticalPresenter.js';
 import { getPokemonSpriteById } from '../../utils/pokemonSprites.js';
 import { PRO_TEAM_SOURCES } from '../../core/proTeamDataSource.js';
 import { buildProTeamFilters, proTeamMatchesFilter } from './renderLearningHubFilters.js';
@@ -17,16 +18,18 @@ export function mergeProTeamStateCollections(...collections) {
 }
 
 export function renderProTeamLearningHub(state) {
-  const filter = state.proStudySelectionState?.filter || 'all';
+  const requestedFilter = state.proStudySelectionState?.filter || 'all';
   const libraryTeams = Array.isArray(state.proTeamLibraryState?.teams) ? state.proTeamLibraryState.teams : [];
   const importedTeams = Array.isArray(state.importedProTeamState?.teams) ? state.importedProTeamState.teams : [];
   const teams = mergeProTeamStateCollections(libraryTeams, importedTeams);
+  const filters = buildProTeamFilters(teams);
+  const validFilterValues = new Set(filters.map(([value]) => value));
+  const filter = validFilterValues.has(requestedFilter) ? requestedFilter : 'all';
   const selectedId = state.proStudySelectionState?.selectedId || teams[0]?.id || '';
   const selected = teams.find((team) => team.id === selectedId) || teams[0] || null;
   const visibleTeams = teams.filter((team) => proTeamMatchesFilter(team, filter));
-  const selectedTeam = visibleTeams.find((team) => team.id === selected?.id) || visibleTeams[0] || selected;
+  const selectedTeam = visibleTeams.find((team) => team.id === selected?.id) || visibleTeams[0] || (filter === 'all' ? selected : null);
   const analysis = selectedTeam ? buildProTeamStudy(selectedTeam, state.data) : null;
-  const filters = buildProTeamFilters(teams);
 
   return `
     <section class="learning-section-panel pro-team-learning-hub" aria-labelledby="pro-team-learning-title">
@@ -37,19 +40,20 @@ export function renderProTeamLearningHub(state) {
           <p>Study real tournament teams in a separate sandbox. Your own team and saved teams are not used here.</p>
         </div>
         <div class="pro-team-source-chips" aria-label="Supported sources">
-          ${['Victory Road', 'LabMaus', 'Limitless', 'Trainer Tower'].map((source) => `<span>${escapeText(source)}</span>`).join('')}
+          ${PRO_TEAM_SOURCES.map((source) => `<span>${escapeText(source.label)}</span>`).join('')}
         </div>
       </div>
 
+      ${filters.length ? `
       <div class="pro-team-filter-row" aria-label="Browse pro teams">
         ${filters.map(([value, label]) => `<button class="pill-button ${filter === value ? 'active' : ''}" type="button" data-action="set-pro-team-filter" data-pro-team-filter="${escapeText(value)}">${escapeText(label)}</button>`).join('')}
-      </div>
+      </div>` : ''}
 
       <div class="pro-team-library-layout">
         <div class="pro-team-list" aria-label="Pro team list">
           ${visibleTeams.map((team) => renderProTeamListCard(team, selectedTeam?.id === team.id)).join('') || renderNoProTeamsState(teams.length > 0)}
         </div>
-        ${analysis ? renderProTeamStudyPanel(analysis, state) : renderProTeamImportFallback()}
+        ${analysis ? renderProTeamStudyPanel(analysis, state) : renderProTeamImportFallback(teams.length > 0)}
       </div>
     </section>
   `;
@@ -176,32 +180,13 @@ export function renderProTeamBulletBlock(title, items = []) {
 export function buildProTeamStudy(team, data) {
   const slots = (team.roster?.length ? team.roster : team.pokemon.map((pokemonId) => ({ pokemon_id: pokemonId }))).map((slot) => ({ pokemon_id: slot.pokemon_id, moves: slot.moves || [], item_id: slot.item_id || '', ability_id: slot.ability_id || '', nature: slot.nature || '' }));
   const coachingProfile = buildTeamCoachingProfile(slots, { data });
-  const teamStyle = coachingProfile.archetype || {};
   const members = slots.map((slot) => data?.indexes?.pokemonById?.[slot.pokemon_id]?.name).filter(Boolean);
-  const primaryStyle = teamStyle.primary || team.styleLabel || 'Balanced Team';
-  const winPlan = normalizeStudyBullets(coachingProfile.coaching?.pilotTips, team.usageNotes || team.coachingNotes);
-  const keyPokemon = inferProTeamKeyPokemon(members, coachingProfile);
-  const speedPlan = inferProTeamSpeedPlan(team, members);
-  const tacticalIdentity = coachingProfile.coaching?.beginnerSummary || `${team.styleLabel} built around clear roles, safe support turns, and a planned endgame.`;
-  const beginnerSummary = buildProTeamBeginnerSummary(team, primaryStyle);
-  const openingPlans = inferProTeamOpeningPlans(team);
-  const commonMistakes = inferProTeamCommonMistakes(team, members);
-  const dangerousMatchups = normalizeStudyBullets(team.dangerousMatchups, ['Teams that stop your speed control can make attacking turns harder.']);
+  const studyPresentation = buildProTeamStudyPresentation(coachingProfile, { team, members });
 
   return {
     team,
     members,
-    primaryStyle,
-    secondaryIdentity: teamStyle.secondary,
-    styleExplanation: simplifyStudyText((teamStyle.reasons || [])[0] || beginnerSummary),
-    tacticalIdentity: simplifyStudyText(tacticalIdentity),
-    beginnerSummary,
-    winPlan,
-    keyPokemon,
-    speedPlan,
-    openingPlans,
-    commonMistakes,
-    dangerousMatchups
+    ...studyPresentation
   };
 }
 
@@ -293,14 +278,18 @@ export function renderNoProTeamsState(hasTeamsForOtherFilters = false) {
   return `<article class="mini-card pro-team-empty-state"><p class="muted">${escapeText(message)}</p></article>`;
 }
 
-export function renderProTeamImportFallback() {
+export function renderProTeamImportFallback(hasTeamsForOtherFilters = false) {
+  const title = hasTeamsForOtherFilters ? 'No pro teams match this filter yet.' : 'No pro teams available right now.';
+  const message = hasTeamsForOtherFilters
+    ? 'Choose All teams or another available filter to open Study This Team.'
+    : 'No bundled or imported pro teams were found. Add normalized pro team data to public/data/pro_teams.json or public/data/pro-sources/ to study real players and events here.';
   return `
     <article class="pro-team-study-panel pro-team-empty-panel">
       <div class="pro-team-study-header">
         <div>
           <span class="section-kicker">Real tournament sources</span>
-          <h3>No pro teams available right now.</h3>
-          <p>Connect normalized imports from Victory Road, LabMaus, Limitless, or Trainer Tower to study real players and events here.</p>
+          <h3>${escapeText(title)}</h3>
+          <p>${escapeText(message)}</p>
         </div>
       </div>
     </article>

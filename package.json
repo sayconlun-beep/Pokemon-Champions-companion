@@ -1,6 +1,6 @@
 {
   "name": "pokemon-champions-companion",
-  "version": "0.3.31",
+  "version": "0.3.35",
   "private": true,
   "type": "module",
   "scripts": {

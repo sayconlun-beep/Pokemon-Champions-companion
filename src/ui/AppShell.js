@@ -12,13 +12,14 @@ import { STAT_DEFINITIONS, adjustStatAllocation, applyStatPreset, emptyStatAlloc
 import { loadProStudyTeams, getProStudyTeamById } from '../core/proTeamDataSource.js';
 import { closeMobileMoreMenus, bindMobileMoreDocumentGuards } from '../app-shell/appShellNavigation.js';
 import { METADEX_INITIAL_VISIBLE_LIMIT, METADEX_LOAD_MORE_INCREMENT, ensureMetadexView, resetMetadexVisibleLimit, buildMetadexContextFromLink, applyMetadexContextToView } from '../app-shell/appShellRoutes.js';
-import { scrollSelectedMetadexIntoView } from '../app-shell/appShellLayout.js';
+import { scrollSelectedMetadexIntoView, focusSelectedMetadexDetail } from '../app-shell/appShellLayout.js';
 import { createAppShellRouteHandlers } from '../app-shell/appShellRoutesHandlers.js';
 import { bindAppShellEvents } from '../app-shell/appShellEvents.js';
 import { renderAppShell } from '../app-shell/appShellRender.js';
 import { getSelectorDropdown, getSelectorWrapForDropdown, openCombobox, closeCombobox, filterGenericOptions, normalizeSearch, visibleGenericOptions, moveActiveGenericOption, hydrateVisibleDropdownSprites, clearDropdownPortal } from '../app-shell/appShellSearch.js';
 import { getPokemonTypeChipStyle } from '../constants/pokemonTypeColors.js';
-import { getGroupedPokemonOptions, getPokemonSearchAliases, getPokemonDisplayName, getPokemonFormLabel } from '../utils/formGrouping.js';
+import { getGroupedPokemonOptions, getPokemonSearchAliases, getPokemonDisplayName, getPokemonFormLabel, resolveGroupedPokemonId } from '../utils/formGrouping.js';
+import { renderMetadexDetailOverlay } from '../pages/metadex/renderMetadexDetailPanel.js';
 
 export async function mountApp(root) {
   const initialRoute = safeRouteFromLocation(window.location);
@@ -309,13 +310,64 @@ function handleDropdownPortalInput(root, event) {
   hydrateVisibleDropdownSprites(sourceInput);
 }
 
+
+function openMetadexDetailOverlay(root, state, selectedId = '') {
+  if (!selectedId) return false;
+  const data = state?.data || {};
+  const resolvedId = resolveGroupedPokemonId(selectedId, data) || selectedId;
+  const pokemon = getGroupedPokemonOptions(data).find((entry) => entry?.pokemon_id === resolvedId)
+    || data?.indexes?.pokemonById?.[resolvedId]
+    || null;
+  if (!pokemon) return false;
+
+  state.metadex ||= { search: '', legality: 'all', field: 'all', selectedId: '', megaOnly: false };
+  state.metadex.selectedId = resolvedId;
+
+  document.querySelectorAll('[data-metadex-detail-overlay]').forEach((node) => node.remove());
+  const host = document.createElement('div');
+  host.innerHTML = renderMetadexDetailOverlay(pokemon, state).trim();
+  const overlay = host.firstElementChild;
+  if (!overlay) return false;
+  document.body.appendChild(overlay);
+  document.body.classList.add('compact-move-picker-open');
+
+  const close = () => {
+    overlay.remove();
+    document.body.classList.remove('compact-move-picker-open');
+    if (state?.metadex) state.metadex.selectedId = '';
+    root?.querySelector?.('.metadex-grid .metadex-tile')?.focus?.({ preventScroll: true });
+  };
+  overlay.querySelector('[data-action="close-metadex-detail"]')?.addEventListener('click', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    close();
+  });
+  overlay.querySelector('.metadex-detail-overlay-panel')?.addEventListener('pointerdown', (event) => {
+    event.stopPropagation();
+  });
+  overlay.addEventListener('click', (event) => {
+    if (event.target === overlay) close();
+  });
+  overlay.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') close();
+  });
+  window.setTimeout(() => {
+    overlay.querySelector('[data-action="close-metadex-detail"]')?.focus?.({ preventScroll: true });
+    overlay.querySelector('.metadex-detail-overlay-panel')?.scrollIntoView?.({ block: 'start', inline: 'nearest' });
+  }, 0);
+  return true;
+}
+
 function selectMetadexResult(root, state, selectedId = '', { fromPointer = false } = {}) {
   if (!selectedId) return false;
   const view = ensureMetadexView(state);
   const isSameSelection = view.selectedId === selectedId;
   view.selectedId = isMetaDexMobileViewport() && isSameSelection && !fromPointer ? '' : selectedId;
   render(root, state);
-  if (view.selectedId) scrollSelectedMetadexIntoView(root);
+  if (view.selectedId) {
+    scrollSelectedMetadexIntoView(root);
+    focusSelectedMetadexDetail(root);
+  }
   return true;
 }
 
@@ -1174,16 +1226,16 @@ function handleMetadexSelectCapture(root, event) {
   const state = getDelegatedState(root);
   const target = event.target;
   if (!(target instanceof Element)) return false;
-  const metadexSelect = target.closest('[data-metadex-select]');
+  const metadexSelect = target.closest('[data-metadex-select], [data-action="select-metadex-pokemon"], [data-metadex-card]');
   if (!metadexSelect || !root.contains(metadexSelect)) return false;
 
-  const selectedId = metadexSelect.dataset.metadexSelect || '';
+  const selectedId = metadexSelect.dataset.metadexSelect || metadexSelect.dataset.pokemonId || '';
   if (!selectedId) return false;
 
   event.preventDefault();
   event.stopPropagation();
   root.__suppressNextMetadexSelectClick = false;
-  selectMetadexResult(root, state, selectedId, { fromPointer: true });
+  openMetadexDetailOverlay(root, state, selectedId);
   return true;
 }
 
@@ -1354,6 +1406,26 @@ function handleDelegatedClick(root, event) {
     return;
   }
 
+  const closeMetadexDetail = target.closest('[data-action="close-metadex-detail"]');
+  if (closeMetadexDetail && root.contains(closeMetadexDetail)) {
+    event.preventDefault();
+    const view = ensureMetadexView(state);
+    view.selectedId = '';
+    render(root, state);
+    root.querySelector('.metadex-page')?.scrollIntoView({ block: 'start', inline: 'nearest' });
+    root.querySelector('.metadex-grid .metadex-tile')?.focus?.({ preventScroll: true });
+    return;
+  }
+
+  const metadexOverlay = target.closest('[data-metadex-detail-overlay]');
+  if (metadexOverlay && target === metadexOverlay && root.contains(metadexOverlay)) {
+    event.preventDefault();
+    const view = ensureMetadexView(state);
+    view.selectedId = '';
+    render(root, state);
+    return;
+  }
+
   const metadexShowMore = target.closest('[data-metadex-show-more]');
   if (metadexShowMore && root.contains(metadexShowMore)) {
     const view = ensureMetadexView(state);
@@ -1370,14 +1442,14 @@ function handleDelegatedClick(root, event) {
     return;
   }
 
-  const metadexSelect = target.closest('[data-metadex-select]');
+  const metadexSelect = target.closest('[data-metadex-select], [data-action="select-metadex-pokemon"], [data-metadex-card]');
   if (metadexSelect && root.contains(metadexSelect)) {
     event.preventDefault();
     if (root.__suppressNextMetadexSelectClick) {
       root.__suppressNextMetadexSelectClick = false;
       return;
     }
-    selectMetadexResult(root, state, metadexSelect.dataset.metadexSelect || '');
+    openMetadexDetailOverlay(root, state, metadexSelect.dataset.metadexSelect || metadexSelect.dataset.pokemonId || '');
     return;
   }
 
@@ -1974,7 +2046,7 @@ function handleDelegatedKeydown(root, event) {
   const focusedMetadexSelect = target.closest?.('[data-metadex-select]');
   if (focusedMetadexSelect && root.contains(focusedMetadexSelect) && (event.key === 'Enter' || event.key === ' ')) {
     event.preventDefault();
-    selectMetadexResult(root, state, focusedMetadexSelect.dataset.metadexSelect || '', { fromPointer: true });
+    openMetadexDetailOverlay(root, state, focusedMetadexSelect.dataset.metadexSelect || focusedMetadexSelect.dataset.pokemonId || '');
     return;
   }
 
