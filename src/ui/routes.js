@@ -5,7 +5,7 @@ import { MatchupsPage } from '../pages/MatchupsPage.js';
 import { DamagePage } from '../pages/DamagePage.js';
 import { MetaDexPage } from '../pages/MetaDexPage.js';
 import { ItemsPage } from '../pages/ItemsPage.js';
-import { LearningHubPage } from '../pages/LearningHubPage.js';
+import { LearningHubPage } from '../pages/learning-hub/LearningHubPage.js';
 import { ImportExportPage } from '../pages/ImportExportPage.js';
 import { DataQualityPage } from '../pages/DataQualityPage.js';
 
