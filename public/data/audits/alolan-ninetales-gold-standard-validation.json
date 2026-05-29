@@ -1,0 +1,43 @@
+{
+  "title": "Alolan Ninetales Gold Standard Entry Validation",
+  "scope": "Safe single-Pokémon addition/fix only. Regular Ninetales and mechanics preserved.",
+  "pokemon_id": "PKMN_0038_ALOLA",
+  "passed": true,
+  "checks": {
+    "regularNinetalesStillExistsSeparately": true,
+    "alolanNinetalesHasSeparatePokemonId": true,
+    "displayNamePresent": true,
+    "typingIsIceFairy": true,
+    "championsLegal": true,
+    "regionalFlag": true,
+    "strategicStrengthsComplete": true,
+    "commonBuildTemplateApplied": true,
+    "biographyEntryPresent": true,
+    "noDuplicatePokemonIds": true,
+    "noDuplicateGoldStandardIds": true,
+    "searchAliasShouldResolve": true,
+    "teamBuilderSelectableByIndependentId": true
+  },
+  "fieldsMarkedNeedsChampionsConfirmation": [
+    "has_moves",
+    "has_abilities",
+    "has_sprite",
+    "commonBuilds legality details",
+    "Champions-specific move/ability/stat validation"
+  ],
+  "addedOrFixedFields": [
+    "name",
+    "display_name",
+    "commonBuilds",
+    "strategicStrengths",
+    "damageProfile",
+    "boardStateProfiles",
+    "targetingPressure",
+    "aiRecognitionProfiles",
+    "decisionMakingHeuristics",
+    "competitiveInsights",
+    "goldStandardProfileSummary",
+    "pokemon_biographies.json entry"
+  ],
+  "recommendedFixes": []
+}

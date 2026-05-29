@@ -1,0 +1,28 @@
+# Netlify _headers — cache policy for split static JSON data.
+# Netlify automatically negotiates Brotli/gzip for compressible responses when
+# the request supports it. Do not set Content-Encoding here unless precompressed
+# .br/.gz files are generated and routed explicitly.
+# Split data files are fetched with DATA_CACHE_VERSION in the query string,
+# so immutable caching is safe until the version changes.
+/data/*.json
+  Cache-Control: public, max-age=31536000, immutable
+  Content-Type: application/json; charset=utf-8
+
+# Legacy fallback only; runtime should not fetch db.json directly.
+/db.json
+  Cache-Control: public, max-age=31536000, immutable
+  Content-Type: application/json; charset=utf-8
+
+# Default for any other versioned/static JSON shipped alongside the app.
+/*.json
+  Cache-Control: public, max-age=31536000, immutable
+  Content-Type: application/json; charset=utf-8
+
+# App shell — must update on every deploy. Netlify serves /index.html for SPA
+# routes via _redirects, so this also covers /team-builder, /matchups, etc.
+/
+  Cache-Control: public, max-age=0, must-revalidate
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate

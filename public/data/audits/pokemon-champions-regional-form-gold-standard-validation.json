@@ -1,0 +1,370 @@
+{
+  "validationName": "Pokemon Champions Regional Form Gold Standard Validation Pass",
+  "generatedAt": "2026-05-15T23:48:52.652Z",
+  "scope": "Added regional/permanent forms from regional-form-fill-v1-2026-05-16 only; no battle, legality, analysis, or recommendation engines altered.",
+  "summary": {
+    "totalAddedFormsChecked": 19,
+    "passed": 19,
+    "failed": 0,
+    "duplicatePokemonIds": [],
+    "duplicateGoldStandardIds": [],
+    "uiVisibilityIssues": [],
+    "incorrectTyping": [],
+    "missingFieldCount": 0
+  },
+  "passedForms": [
+    {
+      "pokemon_id": "PKMN_0026_ALOLA",
+      "displayName": "Raichu (Alolan Form)",
+      "typing": "Electric / Psychic",
+      "goldStandardId": "raichu-alola"
+    },
+    {
+      "pokemon_id": "PKMN_0038_ALOLA",
+      "displayName": "Ninetales (Alolan Form)",
+      "typing": "Ice / Fairy",
+      "goldStandardId": "ninetales-alola"
+    },
+    {
+      "pokemon_id": "PKMN_0059_HISUI",
+      "displayName": "Arcanine (Hisuian Form)",
+      "typing": "Fire / Rock",
+      "goldStandardId": "arcanine-hisui"
+    },
+    {
+      "pokemon_id": "PKMN_0080_GALAR",
+      "displayName": "Slowbro (Galarian Form)",
+      "typing": "Poison / Psychic",
+      "goldStandardId": "slowbro-galar"
+    },
+    {
+      "pokemon_id": "PKMN_0128_PALDEA_AQUA",
+      "displayName": "Tauros (Paldean Aqua Breed)",
+      "typing": "Fighting / Water",
+      "goldStandardId": "tauros-paldea-aqua"
+    },
+    {
+      "pokemon_id": "PKMN_0128_PALDEA_BLAZE",
+      "displayName": "Tauros (Paldean Blaze Breed)",
+      "typing": "Fighting / Fire",
+      "goldStandardId": "tauros-paldea-blaze"
+    },
+    {
+      "pokemon_id": "PKMN_0128_PALDEA_COMBAT",
+      "displayName": "Tauros (Paldean Combat Breed)",
+      "typing": "Fighting",
+      "goldStandardId": "tauros-paldea-combat"
+    },
+    {
+      "pokemon_id": "PKMN_0157_HISUI",
+      "displayName": "Typhlosion (Hisuian Form)",
+      "typing": "Fire / Ghost",
+      "goldStandardId": "typhlosion-hisui"
+    },
+    {
+      "pokemon_id": "PKMN_0199_GALAR",
+      "displayName": "Slowking (Galarian Form)",
+      "typing": "Poison / Psychic",
+      "goldStandardId": "slowking-galar"
+    },
+    {
+      "pokemon_id": "PKMN_0503_HISUI",
+      "displayName": "Samurott (Hisuian Form)",
+      "typing": "Water / Dark",
+      "goldStandardId": "samurott-hisui"
+    },
+    {
+      "pokemon_id": "PKMN_0571_HISUI",
+      "displayName": "Zoroark (Hisuian Form)",
+      "typing": "Normal / Ghost",
+      "goldStandardId": "zoroark-hisui"
+    },
+    {
+      "pokemon_id": "PKMN_0618_GALAR",
+      "displayName": "Stunfisk (Galarian Form)",
+      "typing": "Ground / Steel",
+      "goldStandardId": "stunfisk-galar"
+    },
+    {
+      "pokemon_id": "PKMN_0706_HISUI",
+      "displayName": "Goodra (Hisuian Form)",
+      "typing": "Steel / Dragon",
+      "goldStandardId": "goodra-hisui"
+    },
+    {
+      "pokemon_id": "PKMN_0711_JUMBO",
+      "displayName": "Gourgeist (Jumbo Variety)",
+      "typing": "Ghost / Grass",
+      "goldStandardId": "gourgeist-jumbo-variety"
+    },
+    {
+      "pokemon_id": "PKMN_0711_LARGE",
+      "displayName": "Gourgeist (Large Variety)",
+      "typing": "Ghost / Grass",
+      "goldStandardId": "gourgeist-large-variety"
+    },
+    {
+      "pokemon_id": "PKMN_0711_SMALL",
+      "displayName": "Gourgeist (Small Variety)",
+      "typing": "Ghost / Grass",
+      "goldStandardId": "gourgeist-small-variety"
+    },
+    {
+      "pokemon_id": "PKMN_0713_HISUI",
+      "displayName": "Avalugg (Hisuian Form)",
+      "typing": "Ice / Rock",
+      "goldStandardId": "avalugg-hisui"
+    },
+    {
+      "pokemon_id": "PKMN_0724_HISUI",
+      "displayName": "Decidueye (Hisuian Form)",
+      "typing": "Grass / Fighting",
+      "goldStandardId": "decidueye-hisui"
+    },
+    {
+      "pokemon_id": "PKMN_0902_FEMALE",
+      "displayName": "Basculegion (Female)",
+      "typing": "Water / Ghost",
+      "goldStandardId": "basculegion-female"
+    }
+  ],
+  "failedForms": [],
+  "missingFields": {},
+  "incorrectTyping": [],
+  "duplicateIds": [],
+  "duplicateGoldStandardIds": [],
+  "uiVisibilityIssues": [],
+  "fieldsMarkedNeedsChampionsConfirmation": [
+    {
+      "pokemon_id": "PKMN_0026_ALOLA",
+      "name": "Alolan Raichu",
+      "fields": [
+        "confidenceStatus",
+        "has_moves",
+        "has_abilities",
+        "has_sprite",
+        "requiresOfficialReview",
+        "strictModeEligible"
+      ]
+    },
+    {
+      "pokemon_id": "PKMN_0038_ALOLA",
+      "name": "Ninetales",
+      "fields": [
+        "confidenceStatus",
+        "has_moves",
+        "has_abilities",
+        "has_sprite",
+        "requiresOfficialReview",
+        "strictModeEligible"
+      ]
+    },
+    {
+      "pokemon_id": "PKMN_0059_HISUI",
+      "name": "Hisuian Arcanine",
+      "fields": [
+        "confidenceStatus",
+        "has_moves",
+        "has_abilities",
+        "has_sprite",
+        "requiresOfficialReview",
+        "strictModeEligible"
+      ]
+    },
+    {
+      "pokemon_id": "PKMN_0080_GALAR",
+      "name": "Galarian Slowbro",
+      "fields": [
+        "confidenceStatus",
+        "has_moves",
+        "has_abilities",
+        "has_sprite",
+        "requiresOfficialReview",
+        "strictModeEligible"
+      ]
+    },
+    {
+      "pokemon_id": "PKMN_0128_PALDEA_AQUA",
+      "name": "Paldean Tauros Aqua Breed",
+      "fields": [
+        "confidenceStatus",
+        "has_moves",
+        "has_abilities",
+        "has_sprite",
+        "requiresOfficialReview",
+        "strictModeEligible"
+      ]
+    },
+    {
+      "pokemon_id": "PKMN_0128_PALDEA_BLAZE",
+      "name": "Paldean Tauros Blaze Breed",
+      "fields": [
+        "confidenceStatus",
+        "has_moves",
+        "has_abilities",
+        "has_sprite",
+        "requiresOfficialReview",
+        "strictModeEligible"
+      ]
+    },
+    {
+      "pokemon_id": "PKMN_0128_PALDEA_COMBAT",
+      "name": "Paldean Tauros Combat Breed",
+      "fields": [
+        "confidenceStatus",
+        "has_moves",
+        "has_abilities",
+        "has_sprite",
+        "requiresOfficialReview",
+        "strictModeEligible"
+      ]
+    },
+    {
+      "pokemon_id": "PKMN_0157_HISUI",
+      "name": "Hisuian Typhlosion",
+      "fields": [
+        "confidenceStatus",
+        "has_moves",
+        "has_abilities",
+        "has_sprite",
+        "requiresOfficialReview",
+        "strictModeEligible"
+      ]
+    },
+    {
+      "pokemon_id": "PKMN_0199_GALAR",
+      "name": "Galarian Slowking",
+      "fields": [
+        "confidenceStatus",
+        "has_moves",
+        "has_abilities",
+        "has_sprite",
+        "requiresOfficialReview",
+        "strictModeEligible"
+      ]
+    },
+    {
+      "pokemon_id": "PKMN_0503_HISUI",
+      "name": "Hisuian Samurott",
+      "fields": [
+        "confidenceStatus",
+        "has_moves",
+        "has_abilities",
+        "has_sprite",
+        "requiresOfficialReview",
+        "strictModeEligible"
+      ]
+    },
+    {
+      "pokemon_id": "PKMN_0571_HISUI",
+      "name": "Hisuian Zoroark",
+      "fields": [
+        "confidenceStatus",
+        "has_moves",
+        "has_abilities",
+        "has_sprite",
+        "requiresOfficialReview",
+        "strictModeEligible"
+      ]
+    },
+    {
+      "pokemon_id": "PKMN_0618_GALAR",
+      "name": "Galarian Stunfisk",
+      "fields": [
+        "confidenceStatus",
+        "has_moves",
+        "has_abilities",
+        "has_sprite",
+        "requiresOfficialReview",
+        "strictModeEligible"
+      ]
+    },
+    {
+      "pokemon_id": "PKMN_0706_HISUI",
+      "name": "Hisuian Goodra",
+      "fields": [
+        "confidenceStatus",
+        "has_moves",
+        "has_abilities",
+        "has_sprite",
+        "requiresOfficialReview",
+        "strictModeEligible"
+      ]
+    },
+    {
+      "pokemon_id": "PKMN_0711_JUMBO",
+      "name": "Gourgeist Jumbo Variety",
+      "fields": [
+        "confidenceStatus",
+        "has_moves",
+        "has_abilities",
+        "has_sprite",
+        "requiresOfficialReview",
+        "strictModeEligible"
+      ]
+    },
+    {
+      "pokemon_id": "PKMN_0711_LARGE",
+      "name": "Gourgeist Large Variety",
+      "fields": [
+        "confidenceStatus",
+        "has_moves",
+        "has_abilities",
+        "has_sprite",
+        "requiresOfficialReview",
+        "strictModeEligible"
+      ]
+    },
+    {
+      "pokemon_id": "PKMN_0711_SMALL",
+      "name": "Gourgeist Small Variety",
+      "fields": [
+        "confidenceStatus",
+        "has_moves",
+        "has_abilities",
+        "has_sprite",
+        "requiresOfficialReview",
+        "strictModeEligible"
+      ]
+    },
+    {
+      "pokemon_id": "PKMN_0713_HISUI",
+      "name": "Hisuian Avalugg",
+      "fields": [
+        "confidenceStatus",
+        "has_moves",
+        "has_abilities",
+        "has_sprite",
+        "requiresOfficialReview",
+        "strictModeEligible"
+      ]
+    },
+    {
+      "pokemon_id": "PKMN_0724_HISUI",
+      "name": "Hisuian Decidueye",
+      "fields": [
+        "confidenceStatus",
+        "has_moves",
+        "has_abilities",
+        "has_sprite",
+        "requiresOfficialReview",
+        "strictModeEligible"
+      ]
+    },
+    {
+      "pokemon_id": "PKMN_0902_FEMALE",
+      "name": "Basculegion Female",
+      "fields": [
+        "confidenceStatus",
+        "has_moves",
+        "has_abilities",
+        "has_sprite",
+        "requiresOfficialReview",
+        "strictModeEligible"
+      ]
+    }
+  ],
+  "recommendedFixes": [
+    "No required fixes. Continue to replace Needs Review / Needs Champions Confirmation fields when official Champions-specific move, ability, sprite, and strict-mode data is available."
+  ]
+}

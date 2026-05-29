@@ -1,0 +1,45 @@
+{
+  "addedForms": [
+    "Alolan Raichu",
+    "Alolan Ninetales",
+    "Hisuian Arcanine",
+    "Galarian Slowbro",
+    "Paldean Tauros Combat Breed",
+    "Paldean Tauros Blaze Breed",
+    "Paldean Tauros Aqua Breed",
+    "Hisuian Typhlosion",
+    "Galarian Slowking",
+    "Hisuian Samurott",
+    "Hisuian Zoroark",
+    "Galarian Stunfisk",
+    "Hisuian Goodra",
+    "Hisuian Avalugg",
+    "Hisuian Decidueye",
+    "Basculegion Female",
+    "Gourgeist Small Variety",
+    "Gourgeist Large Variety",
+    "Gourgeist Jumbo Variety"
+  ],
+  "skippedForms": [],
+  "fieldsMarkedNeedsChampionsConfirmation": [
+    "has_moves",
+    "has_abilities",
+    "has_sprite",
+    "confidenceStatus",
+    "requiresOfficialReview",
+    "strictModeEligible",
+    "pokemon_moves.is_legal",
+    "pokemon_abilities.is_legal"
+  ],
+  "validation": {
+    "noDuplicatePokemonId": true,
+    "noDuplicateGoldStandardId": true,
+    "addedFormsChampionsLegalYes": true,
+    "addedFormsRegionalOrAltYes": true,
+    "addedFormsStrategicStrengthsNonEmpty": true,
+    "baseFormsRemainPresent": true,
+    "uiSelectableExpected": "Pass - entries added to public/data/pokemon.json as independent Pokémon rows used by selector data.",
+    "importExportExpected": "Pass - no import/export code changed; independent pokemon_id values used.",
+    "analysisDistinguishesFormsExpected": "Pass - unique pokemon_id and goldStandardId per form."
+  }
+}

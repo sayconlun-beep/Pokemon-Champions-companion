@@ -1,0 +1,2072 @@
+{
+  "auditName": "Pokémon Champions Regional / Permanent Form Audit",
+  "generatedAt": "2026-05-16",
+  "scope": "Audit only. No Pokémon database entries were created, deleted, overwritten, or merged.",
+  "primarySources": [
+    {
+      "name": "Bulbapedia - List of Pokémon in Pokémon Champions",
+      "url": "https://bulbapedia.bulbagarden.net/wiki/List_of_Pok%C3%A9mon_in_Pok%C3%A9mon_Champions",
+      "notes": "States permanent functionally distinct forms are listed alongside base forms; current roster Regular Roster M-A until 2026-06-16."
+    },
+    {
+      "name": "Serebii - Pokémon Champions Available Pokémon",
+      "url": "https://www.serebii.net/pokemonchampions/pokemon.shtml",
+      "notes": "Secondary roster cross-check."
+    }
+  ],
+  "summary": {
+    "officialAuditedFormEntries": 76,
+    "alreadyPresentLocal": 57,
+    "missingLocal": 19,
+    "localAltEntriesNotConfirmedByAudit": 0,
+    "manualReview": 4
+  },
+  "formsPresentInOfficialChampionsRoster": [
+    {
+      "ndex": 26,
+      "species": "Raichu",
+      "form": "Alolan Form",
+      "category": "regional",
+      "types": [
+        "Electric",
+        "Psychic"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 208-210"
+    },
+    {
+      "ndex": 38,
+      "species": "Ninetales",
+      "form": "Alolan Form",
+      "category": "regional",
+      "types": [
+        "Ice",
+        "Fairy"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 213-215"
+    },
+    {
+      "ndex": 59,
+      "species": "Arcanine",
+      "form": "Hisuian Form",
+      "category": "regional",
+      "types": [
+        "Fire",
+        "Rock"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 216-218"
+    },
+    {
+      "ndex": 80,
+      "species": "Slowbro",
+      "form": "Galarian Form",
+      "category": "regional",
+      "types": [
+        "Poison",
+        "Psychic"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 225-227"
+    },
+    {
+      "ndex": 128,
+      "species": "Tauros",
+      "form": "Paldean Form - Combat Breed",
+      "category": "regional-breed",
+      "types": [
+        "Fighting",
+        null
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 236-239"
+    },
+    {
+      "ndex": 128,
+      "species": "Tauros",
+      "form": "Paldean Form - Blaze Breed",
+      "category": "regional-breed",
+      "types": [
+        "Fighting",
+        "Fire"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 240-242"
+    },
+    {
+      "ndex": 128,
+      "species": "Tauros",
+      "form": "Paldean Form - Aqua Breed",
+      "category": "regional-breed",
+      "types": [
+        "Fighting",
+        "Water"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 243-245"
+    },
+    {
+      "ndex": 157,
+      "species": "Typhlosion",
+      "form": "Hisuian Form",
+      "category": "regional",
+      "types": [
+        "Fire",
+        "Ghost"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 264-266"
+    },
+    {
+      "ndex": 199,
+      "species": "Slowking",
+      "form": "Galarian Form",
+      "category": "regional",
+      "types": [
+        "Poison",
+        "Psychic"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 281-283"
+    },
+    {
+      "ndex": 503,
+      "species": "Samurott",
+      "form": "Hisuian Form",
+      "category": "regional",
+      "types": [
+        "Water",
+        "Dark"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 390-392"
+    },
+    {
+      "ndex": 571,
+      "species": "Zoroark",
+      "form": "Hisuian Form",
+      "category": "regional",
+      "types": [
+        "Normal",
+        "Ghost"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 417-419"
+    },
+    {
+      "ndex": 618,
+      "species": "Stunfisk",
+      "form": "Galarian Form",
+      "category": "regional",
+      "types": [
+        "Ground",
+        "Steel"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 430-432"
+    },
+    {
+      "ndex": 706,
+      "species": "Goodra",
+      "form": "Hisuian Form",
+      "category": "regional",
+      "types": [
+        "Steel",
+        "Dragon"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 483-485"
+    },
+    {
+      "ndex": 713,
+      "species": "Avalugg",
+      "form": "Hisuian Form",
+      "category": "regional",
+      "types": [
+        "Ice",
+        "Rock"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 498-500"
+    },
+    {
+      "ndex": 724,
+      "species": "Decidueye",
+      "form": "Hisuian Form",
+      "category": "regional",
+      "types": [
+        "Grass",
+        "Fighting"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 503-505"
+    },
+    {
+      "ndex": 678,
+      "species": "Meowstic",
+      "form": "Male",
+      "category": "gender-mechanical",
+      "types": [
+        "Psychic",
+        null
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 459-462"
+    },
+    {
+      "ndex": 678,
+      "species": "Meowstic",
+      "form": "Female",
+      "category": "gender-mechanical",
+      "types": [
+        "Psychic",
+        null
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 459-462"
+    },
+    {
+      "ndex": 902,
+      "species": "Basculegion",
+      "form": "Male",
+      "category": "gender-mechanical",
+      "types": [
+        "Water",
+        "Ghost"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 566-569"
+    },
+    {
+      "ndex": 902,
+      "species": "Basculegion",
+      "form": "Female",
+      "category": "gender-mechanical",
+      "types": [
+        "Water",
+        "Ghost"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 566-569"
+    },
+    {
+      "ndex": 711,
+      "species": "Gourgeist",
+      "form": "Medium Variety",
+      "category": "size-mechanical",
+      "types": [
+        "Ghost",
+        "Grass"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 490-497"
+    },
+    {
+      "ndex": 711,
+      "species": "Gourgeist",
+      "form": "Small Variety",
+      "category": "size-mechanical",
+      "types": [
+        "Ghost",
+        "Grass"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 490-497"
+    },
+    {
+      "ndex": 711,
+      "species": "Gourgeist",
+      "form": "Large Variety",
+      "category": "size-mechanical",
+      "types": [
+        "Ghost",
+        "Grass"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 490-497"
+    },
+    {
+      "ndex": 711,
+      "species": "Gourgeist",
+      "form": "Jumbo Variety",
+      "category": "size-mechanical",
+      "types": [
+        "Ghost",
+        "Grass"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 490-497"
+    },
+    {
+      "ndex": 351,
+      "species": "Castform",
+      "form": "Sunny Form",
+      "category": "battle-form-listed-separately",
+      "types": [
+        "Fire",
+        null
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 735-740"
+    },
+    {
+      "ndex": 351,
+      "species": "Castform",
+      "form": "Rainy Form",
+      "category": "battle-form-listed-separately",
+      "types": [
+        "Water",
+        null
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 735-740"
+    },
+    {
+      "ndex": 351,
+      "species": "Castform",
+      "form": "Snowy Form",
+      "category": "battle-form-listed-separately",
+      "types": [
+        "Ice",
+        null
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 735-740"
+    },
+    {
+      "ndex": 681,
+      "species": "Aegislash",
+      "form": "Blade Forme",
+      "category": "battle-form-listed-separately",
+      "types": [
+        "Steel",
+        "Ghost"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 807-808"
+    },
+    {
+      "ndex": 869,
+      "species": "Alcremie",
+      "form": "Ruby Cream",
+      "category": "permanent-alt-form",
+      "types": [
+        "Fairy",
+        null
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 809-824"
+    },
+    {
+      "ndex": 869,
+      "species": "Alcremie",
+      "form": "Matcha Cream",
+      "category": "permanent-alt-form",
+      "types": [
+        "Fairy",
+        null
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 809-824"
+    },
+    {
+      "ndex": 869,
+      "species": "Alcremie",
+      "form": "Mint Cream",
+      "category": "permanent-alt-form",
+      "types": [
+        "Fairy",
+        null
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 809-824"
+    },
+    {
+      "ndex": 869,
+      "species": "Alcremie",
+      "form": "Lemon Cream",
+      "category": "permanent-alt-form",
+      "types": [
+        "Fairy",
+        null
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 809-824"
+    },
+    {
+      "ndex": 869,
+      "species": "Alcremie",
+      "form": "Salted Cream",
+      "category": "permanent-alt-form",
+      "types": [
+        "Fairy",
+        null
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 809-824"
+    },
+    {
+      "ndex": 869,
+      "species": "Alcremie",
+      "form": "Ruby Swirl",
+      "category": "permanent-alt-form",
+      "types": [
+        "Fairy",
+        null
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 809-824"
+    },
+    {
+      "ndex": 869,
+      "species": "Alcremie",
+      "form": "Caramel Swirl",
+      "category": "permanent-alt-form",
+      "types": [
+        "Fairy",
+        null
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 809-824"
+    },
+    {
+      "ndex": 869,
+      "species": "Alcremie",
+      "form": "Rainbow Swirl",
+      "category": "permanent-alt-form",
+      "types": [
+        "Fairy",
+        null
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 809-824"
+    },
+    {
+      "ndex": 877,
+      "species": "Morpeko",
+      "form": "Hangry Mode",
+      "category": "battle-form-listed-separately",
+      "types": [
+        "Electric",
+        "Dark"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 825-826"
+    },
+    {
+      "ndex": 925,
+      "species": "Maushold",
+      "form": "Family of Four",
+      "category": "permanent-alt-form",
+      "types": [
+        "Normal",
+        null
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 827-828"
+    },
+    {
+      "ndex": 964,
+      "species": "Palafin",
+      "form": "Hero Form",
+      "category": "battle-form-listed-separately",
+      "types": [
+        "Water",
+        null
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 829-830"
+    },
+    {
+      "ndex": 671,
+      "species": "Florges",
+      "form": "Yellow Flower",
+      "category": "permanent-alt-form",
+      "types": [
+        "Fairy",
+        null
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 781-788"
+    },
+    {
+      "ndex": 671,
+      "species": "Florges",
+      "form": "Orange Flower",
+      "category": "permanent-alt-form",
+      "types": [
+        "Fairy",
+        null
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 781-788"
+    },
+    {
+      "ndex": 671,
+      "species": "Florges",
+      "form": "Blue Flower",
+      "category": "permanent-alt-form",
+      "types": [
+        "Fairy",
+        null
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 781-788"
+    },
+    {
+      "ndex": 671,
+      "species": "Florges",
+      "form": "White Flower",
+      "category": "permanent-alt-form",
+      "types": [
+        "Fairy",
+        null
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 781-788"
+    },
+    {
+      "ndex": 676,
+      "species": "Furfrou",
+      "form": "Heart Trim",
+      "category": "permanent-alt-form",
+      "types": [
+        "Normal",
+        null
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 789-806"
+    },
+    {
+      "ndex": 676,
+      "species": "Furfrou",
+      "form": "Star Trim",
+      "category": "permanent-alt-form",
+      "types": [
+        "Normal",
+        null
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 789-806"
+    },
+    {
+      "ndex": 676,
+      "species": "Furfrou",
+      "form": "Diamond Trim",
+      "category": "permanent-alt-form",
+      "types": [
+        "Normal",
+        null
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 789-806"
+    },
+    {
+      "ndex": 676,
+      "species": "Furfrou",
+      "form": "Debutante Trim",
+      "category": "permanent-alt-form",
+      "types": [
+        "Normal",
+        null
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 789-806"
+    },
+    {
+      "ndex": 676,
+      "species": "Furfrou",
+      "form": "Matron Trim",
+      "category": "permanent-alt-form",
+      "types": [
+        "Normal",
+        null
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 789-806"
+    },
+    {
+      "ndex": 676,
+      "species": "Furfrou",
+      "form": "Dandy Trim",
+      "category": "permanent-alt-form",
+      "types": [
+        "Normal",
+        null
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 789-806"
+    },
+    {
+      "ndex": 676,
+      "species": "Furfrou",
+      "form": "La Reine Trim",
+      "category": "permanent-alt-form",
+      "types": [
+        "Normal",
+        null
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 789-806"
+    },
+    {
+      "ndex": 676,
+      "species": "Furfrou",
+      "form": "Kabuki Trim",
+      "category": "permanent-alt-form",
+      "types": [
+        "Normal",
+        null
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 789-806"
+    },
+    {
+      "ndex": 676,
+      "species": "Furfrou",
+      "form": "Pharaoh Trim",
+      "category": "permanent-alt-form",
+      "types": [
+        "Normal",
+        null
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 789-806"
+    },
+    {
+      "ndex": 666,
+      "species": "Vivillon",
+      "form": "Fancy Pattern",
+      "category": "permanent-alt-form",
+      "types": [
+        "Bug",
+        "Flying"
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 741-780"
+    },
+    {
+      "ndex": 666,
+      "species": "Vivillon",
+      "form": "Icy Snow Pattern",
+      "category": "permanent-alt-form",
+      "types": [
+        "Bug",
+        "Flying"
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 741-780"
+    },
+    {
+      "ndex": 666,
+      "species": "Vivillon",
+      "form": "Polar Pattern",
+      "category": "permanent-alt-form",
+      "types": [
+        "Bug",
+        "Flying"
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 741-780"
+    },
+    {
+      "ndex": 666,
+      "species": "Vivillon",
+      "form": "Tundra Pattern",
+      "category": "permanent-alt-form",
+      "types": [
+        "Bug",
+        "Flying"
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 741-780"
+    },
+    {
+      "ndex": 666,
+      "species": "Vivillon",
+      "form": "Continental Pattern",
+      "category": "permanent-alt-form",
+      "types": [
+        "Bug",
+        "Flying"
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 741-780"
+    },
+    {
+      "ndex": 666,
+      "species": "Vivillon",
+      "form": "Garden Pattern",
+      "category": "permanent-alt-form",
+      "types": [
+        "Bug",
+        "Flying"
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 741-780"
+    },
+    {
+      "ndex": 666,
+      "species": "Vivillon",
+      "form": "Elegant Pattern",
+      "category": "permanent-alt-form",
+      "types": [
+        "Bug",
+        "Flying"
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 741-780"
+    },
+    {
+      "ndex": 666,
+      "species": "Vivillon",
+      "form": "Meadow Pattern",
+      "category": "permanent-alt-form",
+      "types": [
+        "Bug",
+        "Flying"
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 741-780"
+    },
+    {
+      "ndex": 666,
+      "species": "Vivillon",
+      "form": "Modern Pattern",
+      "category": "permanent-alt-form",
+      "types": [
+        "Bug",
+        "Flying"
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 741-780"
+    },
+    {
+      "ndex": 666,
+      "species": "Vivillon",
+      "form": "Marine Pattern",
+      "category": "permanent-alt-form",
+      "types": [
+        "Bug",
+        "Flying"
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 741-780"
+    },
+    {
+      "ndex": 666,
+      "species": "Vivillon",
+      "form": "Archipelago Pattern",
+      "category": "permanent-alt-form",
+      "types": [
+        "Bug",
+        "Flying"
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 741-780"
+    },
+    {
+      "ndex": 666,
+      "species": "Vivillon",
+      "form": "High Plains Pattern",
+      "category": "permanent-alt-form",
+      "types": [
+        "Bug",
+        "Flying"
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 741-780"
+    },
+    {
+      "ndex": 666,
+      "species": "Vivillon",
+      "form": "Sandstorm Pattern",
+      "category": "permanent-alt-form",
+      "types": [
+        "Bug",
+        "Flying"
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 741-780"
+    },
+    {
+      "ndex": 666,
+      "species": "Vivillon",
+      "form": "River Pattern",
+      "category": "permanent-alt-form",
+      "types": [
+        "Bug",
+        "Flying"
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 741-780"
+    },
+    {
+      "ndex": 666,
+      "species": "Vivillon",
+      "form": "Monsoon Pattern",
+      "category": "permanent-alt-form",
+      "types": [
+        "Bug",
+        "Flying"
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 741-780"
+    },
+    {
+      "ndex": 666,
+      "species": "Vivillon",
+      "form": "Savanna Pattern",
+      "category": "permanent-alt-form",
+      "types": [
+        "Bug",
+        "Flying"
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 741-780"
+    },
+    {
+      "ndex": 666,
+      "species": "Vivillon",
+      "form": "Sun Pattern",
+      "category": "permanent-alt-form",
+      "types": [
+        "Bug",
+        "Flying"
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 741-780"
+    },
+    {
+      "ndex": 666,
+      "species": "Vivillon",
+      "form": "Ocean Pattern",
+      "category": "permanent-alt-form",
+      "types": [
+        "Bug",
+        "Flying"
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 741-780"
+    },
+    {
+      "ndex": 666,
+      "species": "Vivillon",
+      "form": "Jungle Pattern",
+      "category": "permanent-alt-form",
+      "types": [
+        "Bug",
+        "Flying"
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 741-780"
+    },
+    {
+      "ndex": 666,
+      "species": "Vivillon",
+      "form": "Poké Ball Pattern",
+      "category": "permanent-alt-form",
+      "types": [
+        "Bug",
+        "Flying"
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 741-780"
+    },
+    {
+      "ndex": 479,
+      "species": "Rotom",
+      "form": "Heat Rotom",
+      "category": "permanent-alt-form",
+      "types": [
+        "Electric",
+        "Fire"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 374-385"
+    },
+    {
+      "ndex": 479,
+      "species": "Rotom",
+      "form": "Wash Rotom",
+      "category": "permanent-alt-form",
+      "types": [
+        "Electric",
+        "Water"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 374-385"
+    },
+    {
+      "ndex": 479,
+      "species": "Rotom",
+      "form": "Frost Rotom",
+      "category": "permanent-alt-form",
+      "types": [
+        "Electric",
+        "Ice"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 374-385"
+    },
+    {
+      "ndex": 479,
+      "species": "Rotom",
+      "form": "Fan Rotom",
+      "category": "permanent-alt-form",
+      "types": [
+        "Electric",
+        "Flying"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 374-385"
+    },
+    {
+      "ndex": 479,
+      "species": "Rotom",
+      "form": "Mow Rotom",
+      "category": "permanent-alt-form",
+      "types": [
+        "Electric",
+        "Grass"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 374-385"
+    }
+  ],
+  "formsAlreadyPresentInLocalDatabase": [
+    {
+      "ndex": 678,
+      "species": "Meowstic",
+      "form": "Male",
+      "category": "gender-mechanical",
+      "types": [
+        "Psychic",
+        null
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 459-462",
+      "localPokemonId": "PKMN_0678",
+      "localName": "Meowstic Male",
+      "localFormName": "Base"
+    },
+    {
+      "ndex": 678,
+      "species": "Meowstic",
+      "form": "Female",
+      "category": "gender-mechanical",
+      "types": [
+        "Psychic",
+        null
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 459-462",
+      "localPokemonId": "PKMN_0678_MEGA_FEMALE",
+      "localName": "Mega Meowstic (Female)",
+      "localFormName": "Mega"
+    },
+    {
+      "ndex": 902,
+      "species": "Basculegion",
+      "form": "Male",
+      "category": "gender-mechanical",
+      "types": [
+        "Water",
+        "Ghost"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 566-569",
+      "localPokemonId": "PKMN_0902",
+      "localName": "Basculegion Male",
+      "localFormName": "Base"
+    },
+    {
+      "ndex": 711,
+      "species": "Gourgeist",
+      "form": "Medium Variety",
+      "category": "size-mechanical",
+      "types": [
+        "Ghost",
+        "Grass"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 490-497",
+      "localPokemonId": "PKMN_0711",
+      "localName": "Gourgeist Medium Variety",
+      "localFormName": "Base"
+    },
+    {
+      "ndex": 351,
+      "species": "Castform",
+      "form": "Sunny Form",
+      "category": "battle-form-listed-separately",
+      "types": [
+        "Fire",
+        null
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 735-740",
+      "localPokemonId": "PKMN_0351_SUNNY",
+      "localName": "Sunny Castform",
+      "localFormName": "Sunny Form"
+    },
+    {
+      "ndex": 351,
+      "species": "Castform",
+      "form": "Rainy Form",
+      "category": "battle-form-listed-separately",
+      "types": [
+        "Water",
+        null
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 735-740",
+      "localPokemonId": "PKMN_0351_RAINY",
+      "localName": "Rainy Castform",
+      "localFormName": "Rainy Form"
+    },
+    {
+      "ndex": 351,
+      "species": "Castform",
+      "form": "Snowy Form",
+      "category": "battle-form-listed-separately",
+      "types": [
+        "Ice",
+        null
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 735-740",
+      "localPokemonId": "PKMN_0351_SNOWY",
+      "localName": "Snowy Castform",
+      "localFormName": "Snowy Form"
+    },
+    {
+      "ndex": 681,
+      "species": "Aegislash",
+      "form": "Blade Forme",
+      "category": "battle-form-listed-separately",
+      "types": [
+        "Steel",
+        "Ghost"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 807-808",
+      "localPokemonId": "PKMN_0681_BLADE",
+      "localName": "Aegislash Blade Forme",
+      "localFormName": "Blade Forme"
+    },
+    {
+      "ndex": 869,
+      "species": "Alcremie",
+      "form": "Ruby Cream",
+      "category": "permanent-alt-form",
+      "types": [
+        "Fairy",
+        null
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 809-824",
+      "localPokemonId": "PKMN_0869_RUBY_CREAM",
+      "localName": "Alcremie Ruby Cream",
+      "localFormName": "Ruby Cream"
+    },
+    {
+      "ndex": 869,
+      "species": "Alcremie",
+      "form": "Matcha Cream",
+      "category": "permanent-alt-form",
+      "types": [
+        "Fairy",
+        null
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 809-824",
+      "localPokemonId": "PKMN_0869_MATCHA_CREAM",
+      "localName": "Alcremie Matcha Cream",
+      "localFormName": "Matcha Cream"
+    },
+    {
+      "ndex": 869,
+      "species": "Alcremie",
+      "form": "Mint Cream",
+      "category": "permanent-alt-form",
+      "types": [
+        "Fairy",
+        null
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 809-824",
+      "localPokemonId": "PKMN_0869_MINT_CREAM",
+      "localName": "Alcremie Mint Cream",
+      "localFormName": "Mint Cream"
+    },
+    {
+      "ndex": 869,
+      "species": "Alcremie",
+      "form": "Lemon Cream",
+      "category": "permanent-alt-form",
+      "types": [
+        "Fairy",
+        null
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 809-824",
+      "localPokemonId": "PKMN_0869_LEMON_CREAM",
+      "localName": "Alcremie Lemon Cream",
+      "localFormName": "Lemon Cream"
+    },
+    {
+      "ndex": 869,
+      "species": "Alcremie",
+      "form": "Salted Cream",
+      "category": "permanent-alt-form",
+      "types": [
+        "Fairy",
+        null
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 809-824",
+      "localPokemonId": "PKMN_0869_SALTED_CREAM",
+      "localName": "Alcremie Salted Cream",
+      "localFormName": "Salted Cream"
+    },
+    {
+      "ndex": 869,
+      "species": "Alcremie",
+      "form": "Ruby Swirl",
+      "category": "permanent-alt-form",
+      "types": [
+        "Fairy",
+        null
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 809-824",
+      "localPokemonId": "PKMN_0869_RUBY_SWIRL",
+      "localName": "Alcremie Ruby Swirl",
+      "localFormName": "Ruby Swirl"
+    },
+    {
+      "ndex": 869,
+      "species": "Alcremie",
+      "form": "Caramel Swirl",
+      "category": "permanent-alt-form",
+      "types": [
+        "Fairy",
+        null
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 809-824",
+      "localPokemonId": "PKMN_0869_CARAMEL_SWIRL",
+      "localName": "Alcremie Caramel Swirl",
+      "localFormName": "Caramel Swirl"
+    },
+    {
+      "ndex": 869,
+      "species": "Alcremie",
+      "form": "Rainbow Swirl",
+      "category": "permanent-alt-form",
+      "types": [
+        "Fairy",
+        null
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 809-824",
+      "localPokemonId": "PKMN_0869_RAINBOW_SWIRL",
+      "localName": "Alcremie Rainbow Swirl",
+      "localFormName": "Rainbow Swirl"
+    },
+    {
+      "ndex": 877,
+      "species": "Morpeko",
+      "form": "Hangry Mode",
+      "category": "battle-form-listed-separately",
+      "types": [
+        "Electric",
+        "Dark"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 825-826",
+      "localPokemonId": "PKMN_0877_HANGRY",
+      "localName": "Morpeko Hangry Mode",
+      "localFormName": "Hangry Mode"
+    },
+    {
+      "ndex": 925,
+      "species": "Maushold",
+      "form": "Family of Four",
+      "category": "permanent-alt-form",
+      "types": [
+        "Normal",
+        null
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 827-828",
+      "localPokemonId": "PKMN_0925_FAMILY_OF_FOUR",
+      "localName": "Maushold Family of Four",
+      "localFormName": "Family of Four"
+    },
+    {
+      "ndex": 964,
+      "species": "Palafin",
+      "form": "Hero Form",
+      "category": "battle-form-listed-separately",
+      "types": [
+        "Water",
+        null
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 829-830",
+      "localPokemonId": "PKMN_0964_HERO",
+      "localName": "Palafin Hero Form",
+      "localFormName": "Hero Form"
+    },
+    {
+      "ndex": 671,
+      "species": "Florges",
+      "form": "Yellow Flower",
+      "category": "permanent-alt-form",
+      "types": [
+        "Fairy",
+        null
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 781-788",
+      "localPokemonId": "PKMN_0671_YELLOW",
+      "localName": "Florges Yellow Flower",
+      "localFormName": "Yellow Flower"
+    },
+    {
+      "ndex": 671,
+      "species": "Florges",
+      "form": "Orange Flower",
+      "category": "permanent-alt-form",
+      "types": [
+        "Fairy",
+        null
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 781-788",
+      "localPokemonId": "PKMN_0671_ORANGE",
+      "localName": "Florges Orange Flower",
+      "localFormName": "Orange Flower"
+    },
+    {
+      "ndex": 671,
+      "species": "Florges",
+      "form": "Blue Flower",
+      "category": "permanent-alt-form",
+      "types": [
+        "Fairy",
+        null
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 781-788",
+      "localPokemonId": "PKMN_0671_BLUE",
+      "localName": "Florges Blue Flower",
+      "localFormName": "Blue Flower"
+    },
+    {
+      "ndex": 671,
+      "species": "Florges",
+      "form": "White Flower",
+      "category": "permanent-alt-form",
+      "types": [
+        "Fairy",
+        null
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 781-788",
+      "localPokemonId": "PKMN_0671_WHITE",
+      "localName": "Florges White Flower",
+      "localFormName": "White Flower"
+    },
+    {
+      "ndex": 676,
+      "species": "Furfrou",
+      "form": "Heart Trim",
+      "category": "permanent-alt-form",
+      "types": [
+        "Normal",
+        null
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 789-806",
+      "localPokemonId": "PKMN_0676_HEART",
+      "localName": "Furfrou Heart Trim",
+      "localFormName": "Heart Trim"
+    },
+    {
+      "ndex": 676,
+      "species": "Furfrou",
+      "form": "Star Trim",
+      "category": "permanent-alt-form",
+      "types": [
+        "Normal",
+        null
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 789-806",
+      "localPokemonId": "PKMN_0676_STAR",
+      "localName": "Furfrou Star Trim",
+      "localFormName": "Star Trim"
+    },
+    {
+      "ndex": 676,
+      "species": "Furfrou",
+      "form": "Diamond Trim",
+      "category": "permanent-alt-form",
+      "types": [
+        "Normal",
+        null
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 789-806",
+      "localPokemonId": "PKMN_0676_DIAMOND",
+      "localName": "Furfrou Diamond Trim",
+      "localFormName": "Diamond Trim"
+    },
+    {
+      "ndex": 676,
+      "species": "Furfrou",
+      "form": "Debutante Trim",
+      "category": "permanent-alt-form",
+      "types": [
+        "Normal",
+        null
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 789-806",
+      "localPokemonId": "PKMN_0676_DEBUTANTE",
+      "localName": "Furfrou Debutante Trim",
+      "localFormName": "Debutante Trim"
+    },
+    {
+      "ndex": 676,
+      "species": "Furfrou",
+      "form": "Matron Trim",
+      "category": "permanent-alt-form",
+      "types": [
+        "Normal",
+        null
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 789-806",
+      "localPokemonId": "PKMN_0676_MATRON",
+      "localName": "Furfrou Matron Trim",
+      "localFormName": "Matron Trim"
+    },
+    {
+      "ndex": 676,
+      "species": "Furfrou",
+      "form": "Dandy Trim",
+      "category": "permanent-alt-form",
+      "types": [
+        "Normal",
+        null
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 789-806",
+      "localPokemonId": "PKMN_0676_DANDY",
+      "localName": "Furfrou Dandy Trim",
+      "localFormName": "Dandy Trim"
+    },
+    {
+      "ndex": 676,
+      "species": "Furfrou",
+      "form": "La Reine Trim",
+      "category": "permanent-alt-form",
+      "types": [
+        "Normal",
+        null
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 789-806",
+      "localPokemonId": "PKMN_0676_LA_REINE",
+      "localName": "Furfrou La Reine Trim",
+      "localFormName": "La Reine Trim"
+    },
+    {
+      "ndex": 676,
+      "species": "Furfrou",
+      "form": "Kabuki Trim",
+      "category": "permanent-alt-form",
+      "types": [
+        "Normal",
+        null
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 789-806",
+      "localPokemonId": "PKMN_0676_KABUKI",
+      "localName": "Furfrou Kabuki Trim",
+      "localFormName": "Kabuki Trim"
+    },
+    {
+      "ndex": 676,
+      "species": "Furfrou",
+      "form": "Pharaoh Trim",
+      "category": "permanent-alt-form",
+      "types": [
+        "Normal",
+        null
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 789-806",
+      "localPokemonId": "PKMN_0676_PHARAOH",
+      "localName": "Furfrou Pharaoh Trim",
+      "localFormName": "Pharaoh Trim"
+    },
+    {
+      "ndex": 666,
+      "species": "Vivillon",
+      "form": "Fancy Pattern",
+      "category": "permanent-alt-form",
+      "types": [
+        "Bug",
+        "Flying"
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 741-780",
+      "localPokemonId": "PKMN_0666_FANCY",
+      "localName": "Vivillon Fancy Pattern",
+      "localFormName": "Fancy Pattern"
+    },
+    {
+      "ndex": 666,
+      "species": "Vivillon",
+      "form": "Icy Snow Pattern",
+      "category": "permanent-alt-form",
+      "types": [
+        "Bug",
+        "Flying"
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 741-780",
+      "localPokemonId": "PKMN_0666_ICY_SNOW",
+      "localName": "Vivillon Icy Snow Pattern",
+      "localFormName": "Icy Snow Pattern"
+    },
+    {
+      "ndex": 666,
+      "species": "Vivillon",
+      "form": "Polar Pattern",
+      "category": "permanent-alt-form",
+      "types": [
+        "Bug",
+        "Flying"
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 741-780",
+      "localPokemonId": "PKMN_0666_POLAR",
+      "localName": "Vivillon Polar Pattern",
+      "localFormName": "Polar Pattern"
+    },
+    {
+      "ndex": 666,
+      "species": "Vivillon",
+      "form": "Tundra Pattern",
+      "category": "permanent-alt-form",
+      "types": [
+        "Bug",
+        "Flying"
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 741-780",
+      "localPokemonId": "PKMN_0666_TUNDRA",
+      "localName": "Vivillon Tundra Pattern",
+      "localFormName": "Tundra Pattern"
+    },
+    {
+      "ndex": 666,
+      "species": "Vivillon",
+      "form": "Continental Pattern",
+      "category": "permanent-alt-form",
+      "types": [
+        "Bug",
+        "Flying"
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 741-780",
+      "localPokemonId": "PKMN_0666_CONTINENTAL",
+      "localName": "Vivillon Continental Pattern",
+      "localFormName": "Continental Pattern"
+    },
+    {
+      "ndex": 666,
+      "species": "Vivillon",
+      "form": "Garden Pattern",
+      "category": "permanent-alt-form",
+      "types": [
+        "Bug",
+        "Flying"
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 741-780",
+      "localPokemonId": "PKMN_0666_GARDEN",
+      "localName": "Vivillon Garden Pattern",
+      "localFormName": "Garden Pattern"
+    },
+    {
+      "ndex": 666,
+      "species": "Vivillon",
+      "form": "Elegant Pattern",
+      "category": "permanent-alt-form",
+      "types": [
+        "Bug",
+        "Flying"
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 741-780",
+      "localPokemonId": "PKMN_0666_ELEGANT",
+      "localName": "Vivillon Elegant Pattern",
+      "localFormName": "Elegant Pattern"
+    },
+    {
+      "ndex": 666,
+      "species": "Vivillon",
+      "form": "Meadow Pattern",
+      "category": "permanent-alt-form",
+      "types": [
+        "Bug",
+        "Flying"
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 741-780",
+      "localPokemonId": "PKMN_0666_MEADOW",
+      "localName": "Vivillon Meadow Pattern",
+      "localFormName": "Meadow Pattern"
+    },
+    {
+      "ndex": 666,
+      "species": "Vivillon",
+      "form": "Modern Pattern",
+      "category": "permanent-alt-form",
+      "types": [
+        "Bug",
+        "Flying"
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 741-780",
+      "localPokemonId": "PKMN_0666_MODERN",
+      "localName": "Vivillon Modern Pattern",
+      "localFormName": "Modern Pattern"
+    },
+    {
+      "ndex": 666,
+      "species": "Vivillon",
+      "form": "Marine Pattern",
+      "category": "permanent-alt-form",
+      "types": [
+        "Bug",
+        "Flying"
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 741-780",
+      "localPokemonId": "PKMN_0666_MARINE",
+      "localName": "Vivillon Marine Pattern",
+      "localFormName": "Marine Pattern"
+    },
+    {
+      "ndex": 666,
+      "species": "Vivillon",
+      "form": "Archipelago Pattern",
+      "category": "permanent-alt-form",
+      "types": [
+        "Bug",
+        "Flying"
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 741-780",
+      "localPokemonId": "PKMN_0666_ARCHIPELAGO",
+      "localName": "Vivillon Archipelago Pattern",
+      "localFormName": "Archipelago Pattern"
+    },
+    {
+      "ndex": 666,
+      "species": "Vivillon",
+      "form": "High Plains Pattern",
+      "category": "permanent-alt-form",
+      "types": [
+        "Bug",
+        "Flying"
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 741-780",
+      "localPokemonId": "PKMN_0666_HIGH_PLAINS",
+      "localName": "Vivillon High Plains Pattern",
+      "localFormName": "High Plains Pattern"
+    },
+    {
+      "ndex": 666,
+      "species": "Vivillon",
+      "form": "Sandstorm Pattern",
+      "category": "permanent-alt-form",
+      "types": [
+        "Bug",
+        "Flying"
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 741-780",
+      "localPokemonId": "PKMN_0666_SANDSTORM",
+      "localName": "Vivillon Sandstorm Pattern",
+      "localFormName": "Sandstorm Pattern"
+    },
+    {
+      "ndex": 666,
+      "species": "Vivillon",
+      "form": "River Pattern",
+      "category": "permanent-alt-form",
+      "types": [
+        "Bug",
+        "Flying"
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 741-780",
+      "localPokemonId": "PKMN_0666_RIVER",
+      "localName": "Vivillon River Pattern",
+      "localFormName": "River Pattern"
+    },
+    {
+      "ndex": 666,
+      "species": "Vivillon",
+      "form": "Monsoon Pattern",
+      "category": "permanent-alt-form",
+      "types": [
+        "Bug",
+        "Flying"
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 741-780",
+      "localPokemonId": "PKMN_0666_MONSOON",
+      "localName": "Vivillon Monsoon Pattern",
+      "localFormName": "Monsoon Pattern"
+    },
+    {
+      "ndex": 666,
+      "species": "Vivillon",
+      "form": "Savanna Pattern",
+      "category": "permanent-alt-form",
+      "types": [
+        "Bug",
+        "Flying"
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 741-780",
+      "localPokemonId": "PKMN_0666_SAVANNA",
+      "localName": "Vivillon Savanna Pattern",
+      "localFormName": "Savanna Pattern"
+    },
+    {
+      "ndex": 666,
+      "species": "Vivillon",
+      "form": "Sun Pattern",
+      "category": "permanent-alt-form",
+      "types": [
+        "Bug",
+        "Flying"
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 741-780",
+      "localPokemonId": "PKMN_0666_SUN",
+      "localName": "Vivillon Sun Pattern",
+      "localFormName": "Sun Pattern"
+    },
+    {
+      "ndex": 666,
+      "species": "Vivillon",
+      "form": "Ocean Pattern",
+      "category": "permanent-alt-form",
+      "types": [
+        "Bug",
+        "Flying"
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 741-780",
+      "localPokemonId": "PKMN_0666_OCEAN",
+      "localName": "Vivillon Ocean Pattern",
+      "localFormName": "Ocean Pattern"
+    },
+    {
+      "ndex": 666,
+      "species": "Vivillon",
+      "form": "Jungle Pattern",
+      "category": "permanent-alt-form",
+      "types": [
+        "Bug",
+        "Flying"
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 741-780",
+      "localPokemonId": "PKMN_0666_JUNGLE",
+      "localName": "Vivillon Jungle Pattern",
+      "localFormName": "Jungle Pattern"
+    },
+    {
+      "ndex": 666,
+      "species": "Vivillon",
+      "form": "Poké Ball Pattern",
+      "category": "permanent-alt-form",
+      "types": [
+        "Bug",
+        "Flying"
+      ],
+      "availability": "Mixed Yes/Transfer only",
+      "sourceLines": "Bulbapedia lines 741-780",
+      "localPokemonId": "PKMN_0666_POK_BALL",
+      "localName": "Vivillon Poké Ball Pattern",
+      "localFormName": "Poké Ball Pattern"
+    },
+    {
+      "ndex": 479,
+      "species": "Rotom",
+      "form": "Heat Rotom",
+      "category": "permanent-alt-form",
+      "types": [
+        "Electric",
+        "Fire"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 374-385",
+      "localPokemonId": "PKMN_0479_HEAT",
+      "localName": "Heat Rotom",
+      "localFormName": "Heat Rotom"
+    },
+    {
+      "ndex": 479,
+      "species": "Rotom",
+      "form": "Wash Rotom",
+      "category": "permanent-alt-form",
+      "types": [
+        "Electric",
+        "Water"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 374-385",
+      "localPokemonId": "PKMN_0479_WASH",
+      "localName": "Wash Rotom",
+      "localFormName": "Wash Rotom"
+    },
+    {
+      "ndex": 479,
+      "species": "Rotom",
+      "form": "Frost Rotom",
+      "category": "permanent-alt-form",
+      "types": [
+        "Electric",
+        "Ice"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 374-385",
+      "localPokemonId": "PKMN_0479_FROST",
+      "localName": "Frost Rotom",
+      "localFormName": "Frost Rotom"
+    },
+    {
+      "ndex": 479,
+      "species": "Rotom",
+      "form": "Fan Rotom",
+      "category": "permanent-alt-form",
+      "types": [
+        "Electric",
+        "Flying"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 374-385",
+      "localPokemonId": "PKMN_0479_FAN",
+      "localName": "Fan Rotom",
+      "localFormName": "Fan Rotom"
+    },
+    {
+      "ndex": 479,
+      "species": "Rotom",
+      "form": "Mow Rotom",
+      "category": "permanent-alt-form",
+      "types": [
+        "Electric",
+        "Grass"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 374-385",
+      "localPokemonId": "PKMN_0479_MOW",
+      "localName": "Mow Rotom",
+      "localFormName": "Mow Rotom"
+    }
+  ],
+  "formsMissingFromLocalDatabase": [
+    {
+      "ndex": 26,
+      "species": "Raichu",
+      "form": "Alolan Form",
+      "category": "regional",
+      "types": [
+        "Electric",
+        "Psychic"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 208-210",
+      "recommendedAction": "Add as separate Pokémon entry; do not merge into base species."
+    },
+    {
+      "ndex": 38,
+      "species": "Ninetales",
+      "form": "Alolan Form",
+      "category": "regional",
+      "types": [
+        "Ice",
+        "Fairy"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 213-215",
+      "recommendedAction": "Add as separate Pokémon entry; do not merge into base species."
+    },
+    {
+      "ndex": 59,
+      "species": "Arcanine",
+      "form": "Hisuian Form",
+      "category": "regional",
+      "types": [
+        "Fire",
+        "Rock"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 216-218",
+      "recommendedAction": "Add as separate Pokémon entry; do not merge into base species."
+    },
+    {
+      "ndex": 80,
+      "species": "Slowbro",
+      "form": "Galarian Form",
+      "category": "regional",
+      "types": [
+        "Poison",
+        "Psychic"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 225-227",
+      "recommendedAction": "Add as separate Pokémon entry; do not merge into base species."
+    },
+    {
+      "ndex": 128,
+      "species": "Tauros",
+      "form": "Paldean Form - Combat Breed",
+      "category": "regional-breed",
+      "types": [
+        "Fighting",
+        null
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 236-239",
+      "recommendedAction": "Add as separate Pokémon entry; do not merge into base species."
+    },
+    {
+      "ndex": 128,
+      "species": "Tauros",
+      "form": "Paldean Form - Blaze Breed",
+      "category": "regional-breed",
+      "types": [
+        "Fighting",
+        "Fire"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 240-242",
+      "recommendedAction": "Add as separate Pokémon entry; do not merge into base species."
+    },
+    {
+      "ndex": 128,
+      "species": "Tauros",
+      "form": "Paldean Form - Aqua Breed",
+      "category": "regional-breed",
+      "types": [
+        "Fighting",
+        "Water"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 243-245",
+      "recommendedAction": "Add as separate Pokémon entry; do not merge into base species."
+    },
+    {
+      "ndex": 157,
+      "species": "Typhlosion",
+      "form": "Hisuian Form",
+      "category": "regional",
+      "types": [
+        "Fire",
+        "Ghost"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 264-266",
+      "recommendedAction": "Add as separate Pokémon entry; do not merge into base species."
+    },
+    {
+      "ndex": 199,
+      "species": "Slowking",
+      "form": "Galarian Form",
+      "category": "regional",
+      "types": [
+        "Poison",
+        "Psychic"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 281-283",
+      "recommendedAction": "Add as separate Pokémon entry; do not merge into base species."
+    },
+    {
+      "ndex": 503,
+      "species": "Samurott",
+      "form": "Hisuian Form",
+      "category": "regional",
+      "types": [
+        "Water",
+        "Dark"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 390-392",
+      "recommendedAction": "Add as separate Pokémon entry; do not merge into base species."
+    },
+    {
+      "ndex": 571,
+      "species": "Zoroark",
+      "form": "Hisuian Form",
+      "category": "regional",
+      "types": [
+        "Normal",
+        "Ghost"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 417-419",
+      "recommendedAction": "Add as separate Pokémon entry; do not merge into base species."
+    },
+    {
+      "ndex": 618,
+      "species": "Stunfisk",
+      "form": "Galarian Form",
+      "category": "regional",
+      "types": [
+        "Ground",
+        "Steel"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 430-432",
+      "recommendedAction": "Add as separate Pokémon entry; do not merge into base species."
+    },
+    {
+      "ndex": 706,
+      "species": "Goodra",
+      "form": "Hisuian Form",
+      "category": "regional",
+      "types": [
+        "Steel",
+        "Dragon"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 483-485",
+      "recommendedAction": "Add as separate Pokémon entry; do not merge into base species."
+    },
+    {
+      "ndex": 713,
+      "species": "Avalugg",
+      "form": "Hisuian Form",
+      "category": "regional",
+      "types": [
+        "Ice",
+        "Rock"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 498-500",
+      "recommendedAction": "Add as separate Pokémon entry; do not merge into base species."
+    },
+    {
+      "ndex": 724,
+      "species": "Decidueye",
+      "form": "Hisuian Form",
+      "category": "regional",
+      "types": [
+        "Grass",
+        "Fighting"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 503-505",
+      "recommendedAction": "Add as separate Pokémon entry; do not merge into base species."
+    },
+    {
+      "ndex": 902,
+      "species": "Basculegion",
+      "form": "Female",
+      "category": "gender-mechanical",
+      "types": [
+        "Water",
+        "Ghost"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 566-569",
+      "recommendedAction": "Add as separate Pokémon entry; do not merge into base species."
+    },
+    {
+      "ndex": 711,
+      "species": "Gourgeist",
+      "form": "Small Variety",
+      "category": "size-mechanical",
+      "types": [
+        "Ghost",
+        "Grass"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 490-497",
+      "recommendedAction": "Add as separate Pokémon entry; do not merge into base species."
+    },
+    {
+      "ndex": 711,
+      "species": "Gourgeist",
+      "form": "Large Variety",
+      "category": "size-mechanical",
+      "types": [
+        "Ghost",
+        "Grass"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 490-497",
+      "recommendedAction": "Add as separate Pokémon entry; do not merge into base species."
+    },
+    {
+      "ndex": 711,
+      "species": "Gourgeist",
+      "form": "Jumbo Variety",
+      "category": "size-mechanical",
+      "types": [
+        "Ghost",
+        "Grass"
+      ],
+      "availability": "Yes",
+      "sourceLines": "Bulbapedia lines 490-497",
+      "recommendedAction": "Add as separate Pokémon entry; do not merge into base species."
+    }
+  ],
+  "formsPresentLocallyButNotConfirmedInChampionsAudit": [],
+  "formsRequiringManualReview": [
+    {
+      "species": "Basculegion",
+      "forms": "Male/Female",
+      "reason": "Local Male exists but base_species/form fields encode it as a base entry; audit flags Female missing and recommends normalising Male metadata before adding Female."
+    },
+    {
+      "species": "Meowstic",
+      "forms": "Male/Female",
+      "reason": "Local Male exists as base entry and Mega Male/Female exist; non-Mega Female is missing. Manual review needed to avoid confusing Mega gender forms with base gender forms."
+    },
+    {
+      "species": "Gourgeist",
+      "forms": "Small/Large/Jumbo",
+      "reason": "Local Medium exists as base entry; missing size varieties are mechanically distinct by stats/speed and should be separate if supported by UI."
+    },
+    {
+      "species": "Visual-only families",
+      "forms": "Vivillon/Florges/Furfrou/Alcremie",
+      "reason": "Official roster lists these forms separately; most are already local. Confirm whether app should keep all cosmetic-only forms searchable or collapse visual variants in UI only."
+    }
+  ],
+  "implementationNotes": [
+    "This pass intentionally does not modify public/data/pokemon.json or public/db.json.",
+    "Missing forms should be added as separate database entries in a later data-entry pass using official stat/type/move/ability data.",
+    "Do not merge regional, gender-mechanical, breed, or size-mechanical entries into base species."
+  ]
+}
