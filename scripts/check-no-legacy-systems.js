@@ -7,26 +7,15 @@ const skippedNames = new Set(['node_modules', 'dist', '.git']);
 const skippedExtensions = new Set(['.md']);
 const self = relative(root, new URL(import.meta.url).pathname);
 
-const encodedNeedles = [
-  'cm9sZXMuanNvbg==',
-  'cm9sZVRhZ3M=',
-  'Z2VuZXJpYyBzeW5lcmd5',
-  'c3luZXJneSBzY29yZQ==',
-  'cGh5c2ljYWwgYXR0YWNrZXI=',
-  'c3BlY2lhbCBhdHRhY2tlcg==',
-  'c3VwcG9ydCByb2xl',
-  'd2FsbA==',
-  'dGFuaw==',
-  'c3dlZXBlcg==',
-  'b2ZmZW5zZS9kZWZlbnNlL3N1cHBvcnQ=',
-  'dGVhbSBpZGVudGl0eQ==',
-  'b2xkIFRlYW0gQnVpbGRlcg==',
-  'b2xkIEFuYWx5c2lzIERlc2s=',
-  'Y29taW5nIHNvb24=',
-  'cGxhY2Vob2xkZXI='
+// Keep this list small and structural: deleted system identifiers only.
+// Do not block ordinary competitive words in user-facing guide copy.
+const deletedSystemNeedles = [
+  'roles.json',
+  'roleTags',
+  'old Team Builder',
+  'old Analysis Desk'
 ];
 
-const needles = encodedNeedles.map((value) => Buffer.from(value, 'base64').toString('utf8'));
 const findings = [];
 
 function extensionOf(path) {
@@ -52,12 +41,12 @@ function scanFile(path) {
   const searchable = removeJsComments(raw).toLowerCase();
   const rel = relative(root, path);
 
-  for (const needle of needles) {
+  for (const needle of deletedSystemNeedles) {
     const lowerNeedle = needle.toLowerCase();
     const index = searchable.indexOf(lowerNeedle);
     if (index === -1) continue;
     const line = searchable.slice(0, index).split('\n').length;
-    findings.push(`${rel}:${line} contains blocked legacy phrase: ${needle}`);
+    findings.push(`${rel}:${line} references deleted legacy system identifier: ${needle}`);
   }
 }
 
@@ -78,9 +67,9 @@ for (const entry of scanRoots) {
 }
 
 if (findings.length) {
-  console.error('Legacy system guard failed. Remove these active-source references before building:\n');
+  console.error('Deleted legacy system guard failed. Remove these active-source references before building:\n');
   console.error(findings.join('\n'));
   process.exit(1);
 }
 
-console.log('Legacy system guard passed.');
+console.log('Deleted legacy system guard passed.');

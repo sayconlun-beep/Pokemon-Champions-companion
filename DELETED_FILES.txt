@@ -1,0 +1,4 @@
+Delete these files from the repo; they are removed in the full v0.3.36 project:
+
+src/utils/tacticalSemanticDeduper.js
+src/utils/tacticalTextNormalizer.js

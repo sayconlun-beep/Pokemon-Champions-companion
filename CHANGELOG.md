@@ -1,3 +1,67 @@
+## v0.3.43 - MetaDex targeted search render
+
+
+
+## v0.3.45 - Structural build guard
+
+- Replaced the broad legacy phrase build guard with an import-layer architecture check.
+- Kept only deleted-system identifiers in the legacy guard so normal guide vocabulary can ship safely.
+- Wired the architecture guard into the build before data/build validation.
+
+## v0.3.44 - Runtime-aware CSS purge reporting
+
+- Added optional runtime CSS coverage reporting for safe, browser-driven stylesheet shrink analysis.
+- Added dynamic class construction reporting so generated class names can be reviewed before any purge is applied.
+- Added an optional purged-dist preview path for mobile sweep validation without modifying `src/styles.css`.
+- Added a targeted MetaDex region renderer for the search/filter results area while leaving the existing full-app render path as the default.
+- Updated MetaDex search typing to refresh only the result grid, result metrics, and search suggestion panel instead of rebuilding the full shell.
+- Kept the existing focus/scroll preservation module in place for pages and controls not yet converted.
+- Preserved delegated event handling so newly rendered MetaDex tiles still open the detail overlay without a full re-bind.
+
+## v0.3.42 - App state encapsulation
+
+- Added a small vanilla app state module with `get`, `set`, `update`, and `subscribe` while keeping the existing full re-render model intact.
+- Moved Team Builder recommendation memo state out of the shared app state object and into `src/logic/recommendationMemo.js`.
+- Moved the MetaDex render cache off the shared state object so cache bags are held in module-local memo storage instead of `state.__*Cache` fields.
+- Preserved route rendering, event binding, URL hydration, and existing mutable state behavior.
+
+## v0.3.40 - Team Slot Card launch fix
+
+
+## v0.3.41 - Team slot card expansion hotfix
+
+- Fixed the Team Builder expanded slot crash caused by missing display-name imports after the TeamSlotCard module split.
+- Verified the extracted TeamSlotCard renderer can render an expanded slot again.
+- Fixed syntax errors introduced during the Team Slot Card module split.
+- Restored the extracted review-card color helper body, removed a duplicated `export`, and removed a duplicate local `normalizeKey` declaration now imported from shared helpers.
+- Confirmed `npm run build` passes after the launch fix.
+
+## v0.3.39 - Team Slot Card module split
+
+- Split the monolithic Team Slot Card component into a thin compatibility entry plus focused render/helper modules under `src/components/team-slot-card/`.
+- Preserved the existing Team Builder import path while moving review-card rendering, expanded controls, stat rendering, spread analysis, and strategic role/pressure helpers into smaller files.
+- Preserved rendered strings, CSS classes, selectors, data attributes, legality checks, item-clause behaviour, stat controls, and collapsed/expanded slot behaviour as an extraction-only refactor.
+
+## v0.3.38 - Team Building Guide module split
+
+- Split the monolithic Team Building Guide page into a thin route controller plus focused render/data/helper modules under `src/pages/team-building-guide/`.
+- Updated `src/ui/routes.js` to import the new Team Building Guide controller directly while keeping the old page path as a compatibility re-export.
+- Preserved rendered text, CSS classes, state usage, and event-binding behavior; this is an extraction-only refactor.
+
+## v0.3.37 — Analysis Desk module split
+
+
+- Split the monolithic Analysis Desk page into a thin controller plus focused render/helper modules under `src/pages/analysis-desk/`.
+- Updated routing to import the new controller directly while keeping the old page path as a one-line compatibility re-export.
+- Preserved Analysis Desk rendered output, coaching profile inputs, coverage calculations, suggested slot links, and Learning Hub links as a move/extract refactor only.
+
+## v0.3.36 — Tactical presenter dead path cleanup
+
+- Removed the legacy tactical semantic deduper and tactical text normalizer utility files after all consuming pages were migrated to presenter-owned display strings.
+- Removed dead Analysis Desk grouping/rendering code that only existed to normalize or dedupe old locally generated tactical prose.
+- Removed dead Matchups fallback prose builders for old opponent threat handling and primary-risk/battle-tip text paths.
+- Kept the core tactical normalization engine in place for non-presenter systems that still use it.
+
 ## v0.3.35 — Tactical presenter Analysis Desk coverage wording
 
 - Moved Analysis Desk Pressure Coverage and Weakness Coverage display wording onto the tactical presenter output.

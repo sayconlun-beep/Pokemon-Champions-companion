@@ -11,7 +11,7 @@
   "lazyCollections": [
     "pokemon_moves"
   ],
-  "generatedAt": "2026-05-29T17:07:34.035Z",
+  "generatedAt": "2026-05-29T18:14:04.487Z",
   "files": {
     "pokemon": "/data/pokemon.json",
     "moves": "/data/moves.json",

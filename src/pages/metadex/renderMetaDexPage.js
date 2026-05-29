@@ -30,7 +30,7 @@ export function renderMetaDexPage(state) {
         <h1>MetaDex</h1>
         <p>Browse each Pokémon by tactical identity, pressure route, board-state fit, matchup risk, and Champions availability.</p>
       </div>
-      <div class="analysis-metrics">
+      <div class="analysis-metrics" data-metadex-metrics>
         <span class="badge">${pokemon.length}/${groupedCount} matched</span>
         <span class="badge">${coverageTotal} tracked fields</span>
       </div>
@@ -43,7 +43,7 @@ export function renderMetaDexPage(state) {
         <label class="field search-field metadex-name-search" data-metadex-search-wrap>
           <span>Pokémon name</span>
           <input id="metadex-name-search" value="${escapeAttr(view.search || '')}" aria-label="Search Pokémon" autocomplete="off" data-metadex-search />
-          <div class="dropdown-panel metadex-dropdown" role="listbox">
+          <div class="dropdown-panel metadex-dropdown" role="listbox" data-metadex-search-options>
             ${searchOptions(state, view).map((pokemonRow) => `<button type="button" class="dropdown-option" data-metadex-select="${escapeAttr(pokemonRow.pokemon_id)}" data-action="select-metadex-pokemon" data-pokemon-id="${escapeAttr(pokemonRow.pokemon_id)}">${escapeText(getPokemonDisplayName(pokemonRow))}</button>`).join('')}
           </div>
         </label>
@@ -115,7 +115,7 @@ export function renderMetaDexPage(state) {
     ${selected ? renderMetadexDetailOverlay(selected, state) : ''}
 
     <section class="metadex-layout metadex-grid-only-layout">
-      <section class="dex-grid metadex-grid" aria-label="Pokémon results">
+      <section class="dex-grid metadex-grid" aria-label="Pokémon results" data-metadex-results-region>
         ${visiblePokemon.map((pokemonRow) => dexTile(pokemonRow, state, selected?.pokemon_id)).join('') || emptyState()}
         ${hiddenCount > 0 ? renderMetadexResultLimitNotice(hiddenCount, view) : ''}
       </section>

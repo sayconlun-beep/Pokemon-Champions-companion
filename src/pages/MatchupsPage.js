@@ -1,22 +1,11 @@
-import { ensureSentence, normalizeCollapseRisk, normalizeTacticalText } from '../core/tacticalNormalization.js';
-import { normalizeDisplayText, compressCoachingList, coachingConclusion } from '../utils/tacticalTextNormalizer.js';
 import { SearchableSelector } from '../components/SearchableSelector.js';
 import { getPokemonSpriteById } from '../utils/pokemonSprites.js';
 import { getPokemonTypeChipStyle } from '../constants/pokemonTypeColors.js';
 import { SpeedControlPanel } from '../components/analysis/SpeedControlPanel.js';
 import { getPokemonDisplayName, getPokemonSearchAliases } from '../utils/formGrouping.js';
-import { getReadablePokemonName } from '../utils/displayNames.js';
 import { buildTeamCoachingProfile } from '../logic/teamCoachingProfile.js';
 import { buildTacticalPresentation } from '../logic/tacticalPresenter.js';
 
-const THREAT_PATTERNS = [
-  ['Speed-control inversion', /speed|tailwind|trick room|tempo|priority/i],
-  ['Taunt disruption', /taunt|disrupt|denial|shut down/i],
-  ['Weather tempo strain', /weather|rain|sun|sand|hail|snow/i],
-  ['Setup snowball risk', /setup|boost|sweep|snowball/i],
-  ['Pivot denial', /pivot|switch|position|board-state/i],
-  ['Priority pressure', /priority|fake out|quick attack|sucker|extreme speed/i]
-];
 
 export function MatchupsPage(state) {
   const selectedMembers = getSelectedMembers(state);
@@ -393,50 +382,6 @@ const TYPE_EFFECTIVENESS = Object.freeze({
 });
 
 
-function memberNameSet(members = []) {
-  return new Set(members.map((pokemon) => normalizeEntityName(getReadablePokemonName(pokemon, ''))).filter(Boolean));
-}
-
-function normalizeEntityName(value = '') {
-  return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
-}
-
-function isOwnTeamCard(card = {}, ownNames = new Set()) {
-  const name = normalizeEntityName(card.pokemonName || card.name || card.title || '');
-  return Boolean(name && ownNames.has(name));
-}
-
-function isAllyThreatLanguage(value = '') {
-  const text = String(value || '').toLowerCase();
-  return /keep (this pok[eé]mon|it) healthy|main finisher|helps your team|support teammate|avoid sacrificing|cleanup attacker|support ' + 'role|one of the team.?s strongest attackers|helps control speed|tailwind helps your team|safe switch|safest answer|protect your safest answer|support mega kangaskhan|umbreon can win|umbreon relies|recovery turns|win path|what wins|stabilizes it|teammates|your attackers|your slower attackers/.test(text);
-}
-
-
-// OPPONENT-SPECIFIC SCENARIO LOGIC: filters analysis evidence so shared ally coaching does not appear as enemy risk text.
-function enemyRiskSentence(value = '') {
-  const text = normalizeDisplayText(value || '', { ensureSentence: true });
-  if (!text || isAllyThreatLanguage(text)) return '';
-  return text;
-}
-
-function fallbackEnemyThreatLine() {
-  return 'No major opposing threats have been identified yet. Choose a specific opponent, lead Pokémon, or meta threat to get more detailed matchup advice.';
-}
-
-
-// OPPONENT-SPECIFIC SCENARIO LOGIC: titles enemy risk evidence from selected matchup cards.
-function inferOpponentRiskTitle(card = {}) {
-  const text = `${card.claim || ''} ${card.detail || ''} ${card.missingDataWarning || ''}`.toLowerCase();
-  if (/trick room/.test(text)) return 'Trick Room pressure';
-  if (/tailwind|speed control|fast|speed/.test(text)) return 'Opposing speed control';
-  if (/taunt|disrupt|denial|shut down/.test(text)) return 'Support disruption';
-  if (/weather|rain|sun|sand|snow|hail/.test(text)) return 'Weather pressure';
-  if (/setup|boost|sweep|snowball/.test(text)) return 'Setup ' + 'sweep' + 'ers';
-  if (/priority|fake out|sucker|extreme speed/.test(text)) return 'Priority pressure';
-  if (/fighting/.test(text)) return 'Fighting-type pressure';
-  return 'Opposing pressure';
-}
-
 // SHARED PROFILE DISPLAY: combines opponent-specific evidence with buildTeamCoachingProfile for shared team tips/risks.
 function buildMatchupModel(_analysis, members, coachingProfile = null, selectedOpponent = null, tacticalPresentation = null) {
   const primaryRisks = Array.isArray(tacticalPresentation?.matchup?.primaryRisks)
@@ -498,91 +443,6 @@ function getSelectedMembers(state) {
     .filter(Boolean);
 }
 
-function collectRealCards(analysis) {
-  return ['matchupPreparation', 'collapseTriggers', 'recoveryRoutes', 'pressureFlow', 'endgameConversion', 'interactionChains', 'coachingPriorities']
-    .flatMap((key) => analysis[key] || [])
-    .filter((card) => !isEmptyEvidenceCard(card));
-}
-
-
-// OPPONENT-SPECIFIC SCENARIO LOGIC: groups enemy-facing pressure cards from analysis evidence.
-function buildPressureThreats(matchupCards, collapseCards, ownNames = new Set()) {
-  const combined = [...matchupCards, ...collapseCards].filter((card) => !isEmptyEvidenceCard(card) && !isOwnTeamCard(card, ownNames));
-  const groups = THREAT_PATTERNS.map(([title, pattern]) => {
-    const matches = combined.filter((card) => pattern.test(`${card.claim || ''} ${card.detail || ''}`));
-    return {
-      title,
-      label: matches.length ? `${matches.length} signals` : 'watch list',
-      details: compressCoachingList(compact(matches.map((card) => enemyRiskSentence(card.claim || card.detail))), { maxItems: 1 })
-    };
-  }).filter(isValidOpponentThreatRow);
-
-  return groups.slice(0, 4);
-}
-
-
-// OPPONENT-SPECIFIC SCENARIO LOGIC: keeps non-team collapse evidence for opponent handling, not shared team risk coaching.
-function buildCollapseRisks(cards, ownNames = new Set()) {
-  const risks = cards.filter((card) => !isEmptyEvidenceCard(card) && !isOwnTeamCard(card, ownNames)).map((card) => ({
-    title: inferOpponentRiskTitle(card),
-    label: `${card.riskLevel || 'medium'} risk`,
-    details: compressCoachingList(compact([enemyRiskSentence(normalizeCollapseRisk(card.claim)), enemyRiskSentence(card.detail), card.missingDataWarning ? enemyRiskSentence(card.missingDataWarning) : '']), { maxItems: 2 })
-  })).filter(isValidOpponentThreatRow);
-  return groupByTitle(risks).filter(isValidOpponentThreatRow).slice(0, 5);
-}
-
-function buildRecoveryStability(cards, members) {
-  const recoveryCards = cards.filter((card) => !isEmptyEvidenceCard(card));
-  if (!recoveryCards.length) {
-    return [{
-      title: members.length ? 'Recovery routes not yet mapped' : 'Select team members first',
-      label: 'partial',
-      details: [members.length ? 'The selected team has limited recovery-route data available in the current gold-standard database.' : 'Recovery stability appears once team Pokémon are selected.']
-    }];
-  }
-  return groupByTitle(recoveryCards.map((card) => ({
-    title: card.pokemonName || 'Recovery route',
-    label: inferRecoveryLabel(card),
-    confidence: card.confidence || 'medium',
-    details: compressCoachingList(compact([tacticalSentence(card.claim), tacticalSentence(card.detail), card.missingDataWarning]), { maxItems: 2 })
-  }))).slice(0, 4);
-}
-
-function buildConversionRoutes(cards) {
-  const conversionCards = cards.filter((card) => !isEmptyEvidenceCard(card));
-  if (!conversionCards.length) {
-    return [{
-      title: 'win path pending',
-      label: 'needs pressure data',
-      details: ['The app needs pressure-flow, interaction-chain, or endgame-pattern data from the selected team before it can describe a closing route.']
-    }];
-  }
-  return groupByTitle(conversionCards.map((card) => ({
-    title: card.pokemonName || 'Team conversion',
-    label: inferConversionLabel(card),
-    details: compressCoachingList(compact([tacticalSentence(card.claim), tacticalSentence(card.detail)]), { maxItems: 2 })
-  }))).slice(0, 5);
-}
-
-function buildPrepPriorities(coachingCards, matchupCards, members) {
-  const source = [...coachingCards, ...matchupCards].filter((card) => !isEmptyEvidenceCard(card));
-  const priorities = source.map((card) => ({
-    title: coachingTitle(card),
-    label: card.pokemonName || 'Team',
-    details: compressCoachingList([toCoachingBullet(card)], { maxItems: 1 })
-  }));
-
-  if (!priorities.length) {
-    return [{
-      title: members.length ? 'Prep priorities pending' : 'Build a team to unlock priorities',
-      label: 'coaching',
-      details: [members.length ? 'No matchup-prep insight exists for the selected team members yet.' : 'Select Pokémon and complete their sets to make the existing tactical analysis usable here.']
-    }];
-  }
-  return compactObjects(priorities, 'title').slice(0, 6);
-}
-
-
 // MATCHUPS UNIVERSAL RULES: Battle Coaching is opponent-reactive only.
 function renderBattleTips(battleCoaching = {}) {
   const visible = Array.isArray(battleCoaching?.items) ? battleCoaching.items : [];
@@ -606,232 +466,12 @@ function renderBattleTips(battleCoaching = {}) {
     </section>`;
 }
 
-// OPPONENT-SPECIFIC SCENARIO LOGIC: fallback only when shared profile risks are unavailable.
-// OPPONENT-SPECIFIC SCENARIO LOGIC: fallback enemy-risk briefing when profile.risks are unavailable.
-function buildPrimaryMatchupRisks(threats, risks, members) {
-  if (!members.length) {
-    return [{
-      empty: true,
-      answer: 'Select or import a team to surface opposing matchup risks.'
-    }];
-  }
-
-  const opposingRiskLines = compressCoachingList(compact([
-    ...threats.flatMap((item) => item.details || []),
-    ...risks.flatMap((item) => item.details || [])
-  ].map(enemyRiskSentence)).filter((line) => line && !/more matchup data|select or import|no major opposing threats/i.test(line)), { maxItems: 4 });
-
-  if (!opposingRiskLines.length) {
-    return [{
-      empty: true,
-      answer: fallbackEnemyThreatLine()
-    }];
-  }
-
-  return [
-    {
-      question: 'Main opposing threat',
-      answer: opposingRiskLines[0]
-    },
-    {
-      question: 'Why it matters',
-      answer: opposingRiskLines[1] || 'This can create unsafe turns if it is allowed to attack, set up, or disrupt your plan freely.'
-    },
-    {
-      question: 'What to avoid',
-      answer: opposingRiskLines[2] || 'Avoid giving dangerous opposing Pokémon free turns before you know their speed control, setup, or disruption plan.'
-    }
-  ].filter((item) => item.answer && !isAllyThreatLanguage(`${item.question} ${item.answer}`));
-}
-
-// SHARED PROFILE DISPLAY: reads summary text from profile.coaching.
-function getSharedMatchupsSummary(coachingProfile = null, selectedOpponent = null) {
-  const archetype = String(coachingProfile?.archetype?.primary || 'No clear archetype yet').trim();
-  const rawFraming = String(coachingProfile?.coaching?.beginnerSummary || '').trim();
-  // Strip existing "Watch out for..." sentences to avoid duplication with biggestRisk below
-  const framing = rawFraming.replace(/\s*Watch out for [^.!?]+[.!?]/gi, '').trim();
-  const biggestRisk = coachingProfile?.risks?.[0]?.type
-    ? `Watch out for ${coachingProfile.risks[0].type} pressure when selecting your lead pair.`
-    : selectedOpponent
-      ? `Prepare your lead pair around ${getPokemonDisplayName(selectedOpponent)} rather than changing the team's core plan.`
-      : 'Pick an opposing Pokémon below to turn this shared plan into matchup-specific preparation.';
-  const text = normalizeDisplayText(
-    framing && framing.toLowerCase().includes(archetype.toLowerCase())
-      ? `${framing} ${biggestRisk}`
-      : `${archetype}: ${framing || 'This page uses the same detected team plan as the Analysis Desk.'} ${biggestRisk}`,
-    { ensureSentence: true }
-  );
-  return dedupeRepeatedSentences(capitalizeDisplayedPokemonNames(text));
-}
-
-function dedupeRepeatedSentences(value = '') {
-  const seen = new Set();
-  return String(value || '')
-    .split(/(?<=[.!?])\s+/)
-    .map((sentence) => sentence.trim())
-    .filter(Boolean)
-    .filter((sentence) => {
-      const key = sentence.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
-      if (!key || seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    })
-    .join(' ');
-}
-
-function capitalizeDisplayedPokemonNames(value = '') {
-  return String(value || '')
-    .replace(/\bpokemon\b/g, 'Pokémon')
-    .replace(/\bninetales\b/gi, 'Ninetales')
-    .replace(/\bleafeon\b/gi, 'Leafeon')
-    .replace(/\btalonflame\b/gi, 'Talonflame')
-    .replace(/\bgarchomp\b/gi, 'Garchomp')
-    .replace(/\bumbreon\b/gi, 'Umbreon')
-    .replace(/\bfroslass\b/gi, 'Froslass')
-    .replace(/\bincineroar\b/gi, 'Incineroar')
-    .replace(/\barcanine\b/gi, 'Arcanine')
-    .replace(/\bblastoise\b/gi, 'Blastoise')
-    .replace(/\bvaporeon\b/gi, 'Vaporeon')
-    .replace(/\bmilotic\b/gi, 'Milotic');
-}
-
-function summarizePressureIdentity(analysis, members) {
-  const pressureCards = [...(analysis.pressureFlow || []), ...(analysis.interactionChains || [])].filter((card) => !isEmptyEvidenceCard(card));
-  if (pressureCards.length) return normalizeTacticalText(pressureCards[0].claim || pressureCards[0].detail || 'coordinated safe attacking opportunities', { diversify: false });
-  const types = compact(members.flatMap((pokemon) => [pokemon.type_1, pokemon.type_2]).filter(Boolean)).slice(0, 3);
-  return types.length ? `${types.join(' / ')} safe attacking opportunities` : 'unmapped safe attacking opportunities';
-}
-
-function calculateReadinessScore(coveragePercent, collapseRisks, missingCount, memberCount) {
-  if (!memberCount) return '0%';
-  const highRisks = collapseRisks.filter((risk) => /high/i.test(risk.label)).length;
-  const score = Math.max(15, Math.min(95, Math.round((coveragePercent || 45) - highRisks * 8 - missingCount * 3 + Math.min(memberCount, 6) * 4)));
-  return `${score}%`;
-}
-
-function buildTags(threats, risks, recovery, routes, score, members) {
-  const tags = [];
-  const threatText = threats.map((item) => item.title).join(' ').toLowerCase();
-  const riskText = risks.flatMap((item) => [item.title, ...(item.details || [])]).join(' ').toLowerCase();
-  const recoveryText = recovery.flatMap((item) => [item.title, ...(item.details || [])]).join(' ').toLowerCase();
-  const routeText = routes.flatMap((item) => [item.title, ...(item.details || [])]).join(' ').toLowerCase();
-
-  if (!members.length) tags.push('Needs active team');
-  if (threatText.includes('speed')) tags.push('Weak vs fast offense');
-  if (riskText.includes('taunt') || threatText.includes('taunt')) tags.push('can struggle against taunt disruption');
-  if (recoveryText.includes('recover') || recoveryText.includes('sustain')) tags.push('Recovery routes mapped');
-  if (routeText.includes('endgame') || routeText.includes('convert')) tags.push('Strong late-game cleanup');
-  if (Number.parseInt(score, 10) >= 70) tags.push('Ready for common matchups');
-  if (!tags.length) tags.push('Partial matchup data', 'Preparation focused');
-  return compact(tags).slice(0, 7);
-}
-
-
-
-function formatPrimaryRiskAnswer(question = '', answer = '') {
-  const normalized = enemyRiskSentence(answer) || fallbackEnemyThreatLine();
-  const contextualLeadNote = ' Consider adjusting your lead pair so your enabler or speed-control piece is not immediately exposed.';
-  const lower = normalized.toLowerCase();
-
-  if (!normalized) return fallbackEnemyThreatLine();
-
-  if (/trick room active|lower-speed positioning|fast-mode assumptions|active because|trick room/.test(lower)) {
-    return 'Trick Room teams can be difficult because they reverse speed order and let slower attackers move first.';
-  }
-
-  if (/weather|rain|sun|sand|snow|hail/.test(lower)) {
-    return 'Weather teams can become dangerous if they boost speed or damage before you have a safe answer ready.' + contextualLeadNote;
-  }
-
-  if (/taunt|disrupt|denial|shut down/.test(lower)) {
-    return 'Taunt and disruption can stop support moves, so avoid relying on one setup or recovery turn to fix the matchup.' + contextualLeadNote;
-  }
-
-  if (/setup|boost|sweep|snowball/.test(lower)) {
-    return 'Boosting attackers can become hard to stop if they get a free turn, so pressure them before they boost.' + contextualLeadNote;
-  }
-
-  return normalized.includes('Consider adjusting your lead pair') ? normalized : normalized + contextualLeadNote;
-}
-
-function buildContextualMatchupRisks(profile = null, selectedOpponent = null) {
-  const risks = Array.isArray(profile?.risks) ? profile.risks : [];
-  const opponentName = selectedOpponent ? getPokemonDisplayName(selectedOpponent) : '';
-  const opponentTypes = selectedOpponent ? pokemonTypes(selectedOpponent) : [];
-  const leads = Array.isArray(profile?.coaching?.recommendedLeads) ? profile.coaching.recommendedLeads : [];
-  const leadNames = leads[0]?.members?.length ? leads[0].members.join(' + ') : '';
-  return risks.map((risk) => contextualizeRisk(risk, { opponentName, opponentTypes, leadNames })).filter(Boolean).slice(0, 3);
-}
-
-function buildTypeSensitiveLeadNote(type = '', leadNames = '') {
-  const t = type.toLowerCase();
-  if (/fighting/.test(t)) return leadNames
-    ? `Lead adjustment: if ${leadNames} exposes a Fighting-weak piece on turn 1, open with a Fake Out user first to deny the initial attack.`
-    : 'Lead adjustment: open with a Fake Out user to deny the first attack rather than exposing a Fighting-weak piece immediately.';
-  if (/ground/.test(t)) return leadNames
-    ? `Lead adjustment: if ${leadNames} puts a Ground-weak piece at risk, pivot to a Ground-immune or floating partner first.`
-    : 'Lead adjustment: pivot to a Ground-immune Pokémon before committing your grounded pieces.';
-  if (/flying/.test(t)) return leadNames
-    ? `Lead adjustment: if ${leadNames} exposes a Flying-weak piece, delay the Tailwind setter and open with a bulkier front to buy a safer setup window.`
-    : 'Lead adjustment: avoid leading your Tailwind setter directly into Flying pressure — find a safer window for the setup turn.';
-  if (/rock/.test(t)) return 'Lead adjustment: Rock Slide flinch odds punish passive setup turns — avoid Protecting into a Rock Slide lead without a safe answer ready.';
-  if (/psychic/.test(t)) return 'Lead adjustment: keep Psychic-weak pieces off the field until the Psychic attacker is identified or chipped down.';
-  if (/water/.test(t)) return 'Lead adjustment: front with a Water-resistant pivot rather than exposing Fire or Ground pieces into a Water lead.';
-  if (/electric/.test(t)) return 'Lead adjustment: keep Water or Flying pieces behind a redirect or Ground-immune partner if Electric pressure is obvious on turn 1.';
-  return leadNames
-    ? `Lead adjustment: if ${leadNames} exposes the enabler into this pressure, choose a safer opening or Protect first.`
-    : 'Lead adjustment: avoid opening with the Pokémon that must survive to enable your main plan if this pressure is obvious.';
-}
-
-function contextualizeRisk(risk = {}, ctx = {}) {
-  const type = String(risk.type || '').trim();
-  const base = String(risk.beginnerAdvice || risk.reason || '').trim();
-  if (!type && !base) return null;
-  const lower = `${type} ${base}`.toLowerCase();
-  const opponentContext = ctx.opponentName
-    ? `${ctx.opponentName}${ctx.opponentTypes.length ? ` brings ${ctx.opponentTypes.join(' / ')} pressure, so this risk matters most when that slot can attack your support piece freely.` : ' is the selected opposing Pokémon, so position around that slot before committing your setup.'}`
-    : inferCommonRiskContext(type || base);
-  const leadNote = buildTypeSensitiveLeadNote(type, ctx.leadNames);
-
-  if (!opponentContext && !leadNote) return null;
-  if (/avoid switching .* into .* attacks/i.test(base) && !ctx.opponentName) return null;
-
-  let label = type ? `${risk.severity || 'Mapped'} ${type} pressure` : 'Mapped matchup pressure';
-  if (/speed|tailwind|trick room|icy wind|paralysis/.test(lower)) label = 'Speed-control pressure';
-  if (/taunt|encore|fake out|disrupt|parting shot|snarl|intimidate/.test(lower)) label = 'Disruption pressure';
-  if (/weather|rain|sun|sand|snow|hail/.test(lower)) label = 'Weather pressure';
-  if (/setup|boost|sweep|snowball/.test(lower)) label = 'Setup pressure';
-
-  return {
-    question: label,
-    answer: `${opponentContext} ${leadNote}`
-  };
-}
-
-function inferCommonRiskContext(value = '') {
-  const text = String(value || '').toLowerCase();
-  if (/flying/.test(text)) return 'Common in Flying-heavy pressure or Ground-immune pivot cores, especially when the opponent can pair a fast attacker with a bulky switch-in.';
-  if (/ground/.test(text)) return 'Common in Earthquake-style offense and Intimidate pivot teams that pressure grounded supports while their partner protects or floats above the attack.';
-  if (/fire/.test(text)) return 'Common in sun offense and Fire-type breaker leads that punish Steel, Grass, Ice, or Bug partners before they can support.';
-  if (/water/.test(text)) return 'Common in rain offense and bulky Water leads that force defensive switches while their partner sets speed control.';
-  if (/electric/.test(text)) return 'Common in fast Electric pressure, paralysis support, and Volt Switch-style positioning cores.';
-  if (/ice/.test(text)) return 'Common in Ice coverage from fast coverage attackers and Blizzard-style spread teams.';
-  if (/rock/.test(text)) return 'Common in Rock Slide pressure, where flinch odds can punish passive setup turns.';
-  if (/fairy/.test(text)) return 'Common in Fairy-heavy balance teams that punish Dragon, Fighting, or Dark attackers trying to force early KOs.';
-  if (/speed|tailwind/.test(text)) return 'Common against Tailwind offense, where the opponent can make your normal speed assumptions unsafe for several turns.';
-  if (/trick room/.test(text)) return 'Common against Trick Room teams, where slower attackers become the immediate threat once the room is active.';
-  if (/taunt|encore|fake out|disrupt/.test(text)) return 'Common into disruption leads that deny your first support move instead of racing your damage directly.';
-  if (/weather|rain|sun|sand|snow/.test(text)) return 'Common into weather teams that compress damage boosts, speed boosts, and field control into the first few turns.';
-  if (/setup|boost|sweep/.test(text)) return 'Common into setup attackers that punish a passive first turn with an immediate snowball threat.';
-  return 'This risk matters most when the opposing lead can pressure your enabler before it creates the field state your team needs.';
-}
-
 // MATCHUPS UNIVERSAL RULES: risks add matchup context beyond Analysis Desk defensive callouts.
 function renderPrimaryMatchupRisks(items = []) {
   const visibleItems = (items || []).filter((item) => item && item.answer);
   const isEmpty = !visibleItems.length || visibleItems.every((item) => item.empty);
   if (isEmpty) {
-    const message = visibleItems[0]?.answer || fallbackEnemyThreatLine();
+    const message = visibleItems[0]?.answer || 'No major opposing threats have been identified yet. Choose a specific opponent, lead Pokémon, or meta threat to get more detailed matchup advice.'
     return `
       <section class="tactical-section-group matchup-cluster primary-matchup-risks primary-matchup-risks-empty">
         <div class="workspace-section-head section-toolbar-header matchup-cluster-head">
@@ -861,99 +501,11 @@ function renderPrimaryMatchupRisks(items = []) {
 
 
 
-// OPPONENT-SPECIFIC SCENARIO LOGIC: renders selected opponent/threat handling rows.
-function renderOpponentThreatHandling(model = {}) {
-  const threatRows = compactObjects([
-    ...(model.pressureThreats || []),
-    ...(model.collapseRisks || [])
-  ].map((item) => ({
-    title: item?.title || item?.name || '',
-    label: item?.label || 'watch',
-    details: compressCoachingList(compact((item?.details || []).map(enemyRiskSentence)), { maxItems: 2 })
-  })).filter(isValidOpponentThreatRow), 'title').slice(0, 4);
-
-  if (!threatRows.length) return '';
-
-  return `
-    <section class="card opponent-threat-handling tactical-secondary-panel" aria-labelledby="opponent-threat-handling-title">
-      <div class="workspace-section-head section-toolbar-header matchup-cluster-head">
-        <div class="section-toolbar-copy">
-          <span class="section-kicker">Advanced matchup navigation</span>
-          <h2 id="opponent-threat-handling-title">Opponent Threat Handling</h2>
-          <p class="section-summary">Use this after the main risk briefing when you want a little more detail on specific opposing pressure.</p>
-        </div>
-      </div>
-      <div class="opponent-threat-grid">
-        ${threatRows.map((item) => `<article class="opponent-threat-card"><div class="opponent-threat-card-head"><h3>${escapeText(item.title)}</h3><span class="badge tertiary-chip">${escapeText(item.label)}</span></div><ul>${item.details.map((detail) => `<li>${escapeText(formatPrimaryRiskAnswer(item.title, detail))}</li>`).join('')}</ul></article>`).join('')}
-      </div>
-    </section>`;
+// OPPONENT-SPECIFIC SCENARIO LOGIC: advanced threat handling was removed after presenter migration.
+function renderOpponentThreatHandling() {
+  return '';
 }
 
-
-function isValidOpponentThreatRow(item = {}) {
-  const title = String(item?.title || item?.name || '').trim();
-  const details = compact(item?.details || []).map((detail) => String(detail || '').trim()).filter(Boolean);
-  const text = `${title} ${details.join(' ')}`.toLowerCase();
-  if (!title || !details.length) return false;
-  if (/^(opposing threat|opponent-specific threat handling pending|more matchup data needed)$/i.test(title)) return false;
-  if (/more matchup data|needs enemy data|select .*opponent|no major opposing threats|choose a specific opponent|pending/i.test(text)) return false;
-  return details.some((detail) => detail.replace(/[^a-z0-9]/gi, '').length > 18);
-}
-
-
-function inferRecoveryLabel(card) {
-  const text = `${card.claim || ''} ${card.detail || ''}`.toLowerCase();
-  if (text.includes('wish') || text.includes('heal')) return 'Sustain route';
-  if (text.includes('protect')) return 'Protect sequencing';
-  if (text.includes('pivot') || text.includes('switch')) return 'Safe switching';
-  return 'Recovery stability';
-}
-
-function inferConversionLabel(card) {
-  const text = `${card.claim || ''} ${card.detail || ''}`.toLowerCase();
-  if (text.includes('endgame')) return 'endgame route';
-  if (text.includes('pivot')) return 'pivot route';
-  if (text.includes('pressure')) return 'pressure route';
-  return 'win path';
-}
-
-function coachingTitle(card) {
-  const name = card.pokemonName || 'Team';
-  const text = `${card.claim || ''} ${card.detail || ''}`.toLowerCase();
-  if (text.includes('fake out')) return `Preserve Fake Out pressure for ${name}`;
-  if (text.includes('tailwind')) return 'Protect Tailwind turns from disruption';
-  if (text.includes('electric')) return `Avoid exposing ${name} before Electric pressure is revealed`;
-  if (text.includes('recovery')) return `Protect ${name} recovery turns`;
-  if (text.includes('support')) return `team support before committing ${name}`;
-  return `Prepare ${name} sequencing`;
-}
-
-// UI RENDERER: converts one evidence card into a display bullet.
-function toCoachingBullet(card) {
-  const text = normalizeTacticalText(card.claim || card.detail || '', { diversify: false });
-  if (/^prioriti[sz]e/i.test(text) || /^protect/i.test(text) || /^avoid/i.test(text) || /^preserve/i.test(text)) return ensureSentence(text);
-  return ensureSentence(`Plan around ${text.charAt(0).toLowerCase()}${text.slice(1)}`);
-}
-
-function isEmptyEvidenceCard(card) {
-  return /no usable evidence|select pokémon|evidence-status warning|no major/i.test(`${card?.claim || ''} ${card?.detail || ''}`);
-}
-
-function tacticalSentence(value) {
-  return ensureSentence(normalizeDisplayText(normalizeTacticalText(value || '', { diversify: false })));
-}
-
-function groupByTitle(items) {
-  const grouped = new Map();
-  items.forEach((item) => {
-    const key = item.title || 'Team';
-    if (!grouped.has(key)) grouped.set(key, { ...item, details: [] });
-    const group = grouped.get(key);
-    group.details.push(...(item.details || []));
-    if (/high/i.test(item.confidence || '')) group.confidence = item.confidence;
-  });
-  return [...grouped.values()].map((item) => ({ ...item, details: compressCoachingList(compact(item.details), { maxItems: 2 }) }));
-}
 
 function compact(values) {
   return [...new Set(values.map((value) => String(value || '').trim()).filter(Boolean))];

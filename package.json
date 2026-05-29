@@ -1,11 +1,11 @@
 {
   "name": "pokemon-champions-companion",
-  "version": "0.3.35",
+  "version": "0.3.45",
   "private": true,
   "type": "module",
   "scripts": {
     "check:legacy": "node scripts/check-no-legacy-systems.js",
-    "build": "npm run check:legacy && npm run test:common-builds-legality && node scripts/build.mjs",
+    "build": "npm run check:architecture && npm run check:deleted-legacy && npm run test:common-builds-legality && node scripts/build.mjs",
     "qa:purge": "node scripts/purge-check.mjs",
     "qa": "npm run build && npm run qa:purge",
     "start": "npm run build && node scripts/serve-spa.mjs",
@@ -26,6 +26,16 @@
     "test:team-migration-engine": "node tests/team-migration-engine.test.mjs",
     "test:engines": "node tests/run-engine-tests.mjs",
     "test:startup-smoke": "node scripts/smoke-test-startup.mjs",
-    "test": "npm run test:engines && npm run test:shareable-team-url && npm run test:showdown-common-builds && npm run test:strategic-validator && npm run test:common-builds-legality && npm run test:startup-smoke"
+    "test": "npm run test:engines && npm run test:shareable-team-url && npm run test:showdown-common-builds && npm run test:strategic-validator && npm run test:common-builds-legality && npm run test:startup-smoke",
+    "css:dynamic-safelist": "node scripts/css-dynamic-class-report.mjs",
+    "css:runtime-report": "npm run css:dynamic-safelist && node scripts/css-runtime-coverage-report.mjs",
+    "build:css-purge-report": "npm run build && npm run css:runtime-report",
+    "build:css-purge-preview": "npm run build && npm run css:dynamic-safelist && node scripts/css-runtime-coverage-report.mjs --preview",
+    "test:mobile:purged": "npm run build:css-purge-preview && npx playwright test",
+    "check:architecture": "node scripts/check-architecture-boundaries.mjs",
+    "check:deleted-legacy": "node scripts/check-no-legacy-systems.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.60.0"
   }
 }

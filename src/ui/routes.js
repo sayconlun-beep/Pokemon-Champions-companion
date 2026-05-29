@@ -1,6 +1,6 @@
 import { TeamBuilderPage } from '../pages/TeamBuilderPage.js';
-import { TeamBuildingGuidePage } from '../pages/TeamBuildingGuidePage.js';
-import { AnalysisDeskPage } from '../pages/AnalysisDeskPage.js';
+import { TeamBuildingGuidePage } from '../pages/team-building-guide/TeamBuildingGuidePage.js';
+import { AnalysisDeskPage } from '../pages/analysis-desk/AnalysisDeskPage.js';
 import { MatchupsPage } from '../pages/MatchupsPage.js';
 import { DamagePage } from '../pages/DamagePage.js';
 import { MetaDexPage } from '../pages/MetaDexPage.js';

@@ -16,10 +16,16 @@ import { scrollSelectedMetadexIntoView, focusSelectedMetadexDetail } from '../ap
 import { createAppShellRouteHandlers } from '../app-shell/appShellRoutesHandlers.js';
 import { bindAppShellEvents } from '../app-shell/appShellEvents.js';
 import { renderAppShell } from '../app-shell/appShellRender.js';
+import { metadexSearchSignature, renderMetadexDynamicRegions } from '../app-shell/metadexRegionRender.js';
 import { getSelectorDropdown, getSelectorWrapForDropdown, openCombobox, closeCombobox, filterGenericOptions, normalizeSearch, visibleGenericOptions, moveActiveGenericOption, hydrateVisibleDropdownSprites, clearDropdownPortal } from '../app-shell/appShellSearch.js';
 import { getPokemonTypeChipStyle } from '../constants/pokemonTypeColors.js';
 import { getGroupedPokemonOptions, getPokemonSearchAliases, getPokemonDisplayName, getPokemonFormLabel, resolveGroupedPokemonId } from '../utils/formGrouping.js';
 import { renderMetadexDetailOverlay } from '../pages/metadex/renderMetadexDetailPanel.js';
+import { createAppState, createInitialAppState } from './appState.js';
+import { clearTeamBuilderRecommendationPending, getTeamBuilderRecommendation, isTeamBuilderRecommendationPending, markTeamBuilderRecommendationPending, resetTeamBuilderRecommendationMemo, setTeamBuilderRecommendation, teamRecommendationKey } from '../logic/recommendationMemo.js';
+
+let metadexSearchRenderTimer = 0;
+let lastMetadexSearchSignature = '';
 
 export async function mountApp(root) {
   const initialRoute = safeRouteFromLocation(window.location);
@@ -27,27 +33,12 @@ export async function mountApp(root) {
     window.history.replaceState({ routeId: initialRoute.id }, '', initialRoute.path);
   }
 
-  const state = {
-    data: null,
-    team: Array.from({ length: 6 }, () => null),
-    route: initialRoute.id,
-    builderFocus: [],
-    metadex: { search: '', legality: 'all', field: 'all', selectedId: '', megaOnly: false },
-    items: { search: '', category: 'all', use: 'any', sort: 'alphabetical', selectedId: '' },
-    __teamBuilderRecommendationCache: { key: '', items: [] },
-    __pendingRecommendationKey: '',
-    slotUiState: loadSlotUiState(),
-    importExport: { mode: 'champions', draft: '', lastResult: null },
-    shareUrlNotice: '',
-    shareUrlWarning: '',
-    teamBuildingGuideStep: 1,
-    suggestedPartnersExpanded: false,
-    learningHubExpanded: null,
-    proTeamLibraryState: { status: 'idle', teams: [], error: '' },
-    importedProTeamState: { status: 'idle', teams: [], lastImportedAt: '' },
-    proStudySelectionState: { filter: 'all', selectedId: '', notice: '', activeSandbox: null },
-    matchupsScenario: { selectedOpponentId: '' }
-  };
+  const appState = createAppState(createInitialAppState({
+    initialRouteId: initialRoute.id,
+    slotUiState: loadSlotUiState()
+  }));
+  const state = appState.get();
+  appState.subscribe((nextState) => render(root, nextState));
 
   try {
     const params = new URLSearchParams(window.location.search || '');
@@ -80,15 +71,16 @@ export async function mountApp(root) {
 
   window.addEventListener('popstate', () => {
     state.route = safeRouteFromLocation(window.location).id;
-    render(root, state);
+    appState.update((current) => current);
   });
 
-  render(root, state);
+  appState.update((current) => current);
 }
 
 function render(root, state) {
   clearDropdownPortal();
   renderAppShell(root, state, bind);
+  lastMetadexSearchSignature = state?.route === 'metadex' ? metadexSearchSignature(state) : '';
   syncShareableTeamUrl(state);
 }
 
@@ -1119,36 +1111,23 @@ function markTeamBuilderDerivedWorkDirty(state) {
   state.__teamBuilderDerivedDirty = true;
 }
 
-function teamRecommendationKey(state) {
-  return JSON.stringify({
-    focus: state.builderFocus || [],
-    team: (state.team || []).map((slot) => slot ? {
-      p: slot.pokemon_id || '',
-      i: slot.item_id || '',
-      a: slot.ability_id || '',
-      n: slot.nature || '',
-      m: slot.moves || []
-    } : null)
-  });
-}
-
 function queueDeferredTeamBuilderRecommendations(root, state) {
   if (state.route !== 'team-builder' || !state.data) return;
   const key = teamRecommendationKey(state);
-  if (state.__teamBuilderRecommendationCache?.key === key) return;
-  if (state.__pendingRecommendationKey === key) return;
-  state.__pendingRecommendationKey = key;
+  if (getTeamBuilderRecommendation(key)) return;
+  if (isTeamBuilderRecommendationPending(key)) return;
+  markTeamBuilderRecommendationPending(key);
   window.setTimeout(() => {
     if (state.route !== 'team-builder') return;
     const latestKey = teamRecommendationKey(state);
     if (latestKey !== key) {
-      state.__pendingRecommendationKey = '';
+      clearTeamBuilderRecommendationPending(key);
       queueDeferredTeamBuilderRecommendations(root, state);
       return;
     }
     const items = recommendCandidates(state.team, state.data, 18, { focus: state.builderFocus || [] });
-    state.__teamBuilderRecommendationCache = { key, items };
-    state.__pendingRecommendationKey = '';
+    setTeamBuilderRecommendation(key, items);
+    clearTeamBuilderRecommendationPending(key);
     state.__teamBuilderDerivedDirty = false;
     scheduleRender(root, state, 'deferred-recommendations');
   }, 90);
@@ -1764,8 +1743,7 @@ function handleDelegatedClick(root, event) {
 function resetCoreBuilderDraft(state) {
   state.builderFocus = [];
   state.suggestedPartnersExpanded = false;
-  state.__teamBuilderRecommendationCache = { key: '', items: [] };
-  state.__pendingRecommendationKey = '';
+  resetTeamBuilderRecommendationMemo();
 }
 
 function clearGenericSelector(button, state, root) {
@@ -1966,19 +1944,15 @@ function handleDelegatedInput(root, event) {
     return;
   } else if (target.matches('[data-metadex-search]')) {
     const view = resetMetadexVisibleLimit(state);
-    const cursor = target.selectionStart ?? String(target.value || '').length;
     view.search = target.value || '';
     view.selectedId = '';
-    window.clearTimeout(state.__metadexSearchRenderTimer);
-    state.__metadexPendingSearchCursor = cursor;
-    state.__metadexSearchRenderTimer = window.setTimeout(() => {
-      render(root, state);
-      const nextInput = root.querySelector('[data-metadex-search]');
-      if (nextInput) {
-        nextInput.focus({ preventScroll: true });
-        try { nextInput.setSelectionRange(state.__metadexPendingSearchCursor || 0, state.__metadexPendingSearchCursor || 0); } catch {}
-      }
-    }, 90);
+    window.clearTimeout(metadexSearchRenderTimer);
+    metadexSearchRenderTimer = window.setTimeout(() => {
+      const nextSignature = metadexSearchSignature(state);
+      if (nextSignature === lastMetadexSearchSignature) return;
+      lastMetadexSearchSignature = nextSignature;
+      if (!renderMetadexDynamicRegions(root, state)) render(root, state);
+    }, 60);
   } else if (target.matches('[data-selector-search]')) {
     filterGenericOptions(target);
     hydrateVisibleDropdownSprites(target);

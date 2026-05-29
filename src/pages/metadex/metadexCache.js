@@ -8,12 +8,14 @@ import { ATTACKING_TYPES, TYPE_EFFECTIVENESS, calculateDefensiveMultiplier, calc
 import { buildTeamCoachingProfile } from '../../logic/teamCoachingProfile.js';
 import { legalAbilities, legalMoves } from './metadexText.js';
 
+const metadexRenderCaches = new WeakMap();
+
 export function metadexCache(state = {}, options = {}) {
   const dataKey = state?.data?.collections?.pokemon || null;
   const teamKey = teamCacheKey(state);
-  const existing = state.__metadexRenderCache;
+  const existing = metadexRenderCaches.get(state);
   if (!existing || existing.dataKey !== dataKey || options.ensureFresh && existing.teamKey !== teamKey) {
-    state.__metadexRenderCache = {
+    const nextCache = {
       dataKey,
       teamKey,
       filterMatches: existing?.filterMatches instanceof Map ? existing.filterMatches : new Map(),
@@ -24,8 +26,10 @@ export function metadexCache(state = {}, options = {}) {
       detailPanels: existing?.detailPanels instanceof Map ? existing.detailPanels : new Map(),
       teamProfile: null
     };
+    metadexRenderCaches.set(state, nextCache);
+    return nextCache;
   }
-  return state.__metadexRenderCache;
+  return existing;
 }
 
 
