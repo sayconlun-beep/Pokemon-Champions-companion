@@ -1,4 +1,5 @@
 import { getDataQualityReport, GOLD_FIELD_NAMES } from '../utils/dataQualityScoring.js';
+import { DATA_CONFIDENCE_DISCLOSURE_COPY, getDataConfidenceSummary } from '../logic/dataConfidenceDisclosure.js';
 
 export function DataQualityPage(state) {
   const pokemon = Array.isArray(state.data?.collections?.pokemon) ? state.data.collections.pokemon : [];
@@ -8,6 +9,7 @@ export function DataQualityPage(state) {
   const fivePlusPercentage = percentage(report.pokemonWithFivePlusGoldFields, total);
   const belowThreePercentage = percentage(report.pokemonWithBelowThreeGoldFields, total);
   const strategicValidation = getStrategicValidationSummary(pokemon);
+  const dataConfidence = getDataConfidenceSummary(pokemon);
 
   return `<section class="page-stack data-quality-page">
     <header class="hero data-quality-hero">
@@ -37,6 +39,29 @@ export function DataQualityPage(state) {
         <article class="stat-card">
           <div class="stat-value">${belowThreePercentage}%</div>
           <div class="stat-label">Pokémon with &lt;3 gold fields</div>
+        </article>
+      </div>
+    </section>
+
+
+    <section class="card data-confidence-team-panel" aria-labelledby="data-confidence-quality-title">
+      <div class="section-title-row compact-title-row">
+        <h2 id="data-confidence-quality-title">Data Confidence Disclosure</h2>
+        <span class="badge data-confidence-badge">${dataConfidence.pendingOfficialConfirmation} pending</span>
+      </div>
+      <p class="helper-note">${escapeText(DATA_CONFIDENCE_DISCLOSURE_COPY.summary)}.</p>
+      <div class="coverage-summary quality-tier-summary">
+        <article class="stat-card">
+          <div class="stat-value">${dataConfidence.pendingOfficialConfirmation}</div>
+          <div class="stat-label">Need official confirmation</div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-value">${dataConfidence.confirmed}</div>
+          <div class="stat-label">Confirmed / disclosure hidden</div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-value">${dataConfidence.strategicLevels.medium || 0}</div>
+          <div class="stat-label">Medium strategic inference</div>
         </article>
       </div>
     </section>

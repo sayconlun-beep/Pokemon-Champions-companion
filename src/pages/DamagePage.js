@@ -1,4 +1,5 @@
 import { estimateBenchmarks } from '../core/damageBenchmarkEngine.js';
+import { renderTeamDataConfidenceDisclosure } from '../logic/dataConfidenceDisclosure.js';
 import { buildDamageBenchmarkBullets, buildDamageCleanupSteps, buildDamageOverviewPresentation, buildDamageRoleBullets, buildDamageSupportPathSteps, createPresenterLineDeduper, formatTacticalPresenterText, presenterConclusion, presenterSignalCount } from '../logic/tacticalPresenter.js';
 
 export function DamagePage(state) {
@@ -58,6 +59,8 @@ export function DamagePage(state) {
         ${overviewItem('Best Offensive Support', damagePresentation.support)}
       </div>
     </details>
+
+    ${renderTeamDataConfidenceDisclosure(state.team, state.data, { id: 'damage-team', title: 'Damage data confidence' })}
 
     ${renderOffensiveRolesSection(offensiveGroups, dedupePageText)}
 

@@ -27,7 +27,6 @@ th, td { padding: .75rem; border-bottom: 1px solid rgba(255,255,255,.1); text-al
 .risk-medium { background: rgba(255,200,90,.16); }
 .risk-low { background: rgba(70,220,150,.14); }
 .muted { color: #aab3d8; }
-.strategic-card ul { padding-left: 1.1rem; }
 .team-tools { margin-top: 1rem; }
 #team-json { margin: .75rem 0; }
 pre { white-space: pre-wrap; overflow-wrap: anywhere; }
@@ -71,12 +70,6 @@ overflow-y: visible; text-overflow: ellipsis; white-space: nowrap; }
 .warning, .notice { margin: 0; border-radius: 14px; padding: .65rem .75rem; font-size: .88rem; }
 .warning { background: rgba(255,90,90,.14); border: 1px solid rgba(255,90,90,.28); }
 .notice { background: rgba(255,210,90,.10); border: 1px solid rgba(255,210,90,.22); color: #f2dfaa; }
-.chain-preview { margin-top: .85rem; }
-.chain-preview ul { margin-bottom: 0; padding-left: 1.1rem; color: #dbe4ff; }
-.chain-list { display: grid; gap: .45rem; }
-.chain-chip { border: 1px solid rgba(255,255,255,.1); border-radius: 16px; padding: .65rem .75rem; background: rgba(255,255,255,.06); font-size: .9rem; }
-.tactical-card { padding: .85rem; }
-.tactical-card p { margin: .5rem 0; }
 .score-pill { border-radius: 999px; padding: .28rem .5rem; background: rgba(255,255,255,.12); color: #dbe4ff; font-size: .82rem; }
 @media (max-width: 1080px) {
   .builder-workspace { grid-template-columns: 1fr; }
@@ -125,11 +118,6 @@ overflow-y: visible; text-overflow: ellipsis; white-space: nowrap; }
 .tactical-grid { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
 .tactical-analysis-card { display: grid; gap: .65rem; padding: .9rem; }
 .tactical-analysis-card h3 { margin: 0; font-size: 1rem; }
-.claim-text { margin: 0; line-height: 1.45; color: #eef2ff; }
-.evidence-strip { display: grid; gap: .35rem; padding: .6rem; border-radius: 16px; background: rgba(0,0,0,.16); color: #c8d1f4; font-size: .83rem; }
-.missing-warning { margin: 0; padding: .38rem .5rem; border: 1px solid rgba(255,210,90,.14); border-radius: 12px; color: rgba(242,223,170,.78); background: rgba(255,210,90,.055); font-size: .78rem; line-height: 1.35; }
-.thin-evidence-note { display: inline-flex; align-items: center; width: fit-content; max-width: 100%; padding: .28rem .46rem; border-color: rgba(255,210,90,.12); background: rgba(255,210,90,.04); color: rgba(242,223,170,.72); box-shadow: none; }
-.thin-evidence-note p { margin: 0; }
 .analysis-details { border-top: 1px solid rgba(255,255,255,.1); padding-top: .55rem; }
 .analysis-details summary { cursor: pointer; color: #dbe4ff; }
 .analysis-details p { margin-bottom: 0; color: #aab3d8; }
@@ -1294,13 +1282,6 @@ overflow-y: visible; text-overflow: ellipsis; }
 .success { margin: .65rem 0; border: 1px solid rgba(70,220,150,.25); background: rgba(70,220,150,.12); border-radius: 14px; padding: .65rem .75rem; color: #d9ffe9; }
 .import-result { display: grid; gap: .5rem; }
 @media (max-width: 900px) { .import-export-layout { grid-template-columns: 1fr; } }
-
-
-/* Guided Team Coach panel */
-.core-builder-panel {
-  display: grid;
-  gap: 0.85rem;
-}
 .status-chip-row,
 .core-status-chips,
 .core-action-row,
@@ -1311,19 +1292,9 @@ overflow-y: visible; text-overflow: ellipsis; }
   align-items: center;
 }
 .ruleset-badge { white-space: nowrap; }
-.core-main-block {
-  display: grid;
-  gap: 0.75rem;
-}
 
 .core-builder-panel > .card-head { align-items: center; }
 .core-builder-panel .search-field { z-index: 8; }
-.core-main-block { grid-template-columns: minmax(260px, 0.72fr) minmax(280px, 1.28fr); align-items: start; }
-.core-main-block > .notice { grid-column: 1 / -1; }
-.core-main-summary { min-width: 0; }
-.core-partner-card:hover, .core-partner-card:focus-within { border-color: rgba(145,200,255,.34); background: rgba(30, 41, 59, 0.5); }
-.core-action-row button:first-child { background: rgba(100,180,255,.18); border-color: rgba(145,200,255,.34); }
-.core-action-row button:focus-visible, .core-partner-card button:focus-visible { outline: 2px solid rgba(145,200,255,.78); outline-offset: 2px; }
 .core-main-selector .selector-dropdown {
   max-height: min(22rem, 58vh);
 }
@@ -1336,19 +1307,6 @@ overflow-y: visible; text-overflow: ellipsis; }
   padding: 0.75rem;
   background: rgba(15, 23, 42, 0.38);
 }
-.core-pokemon-head {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  min-width: 0;
-}
-.core-pokemon-head.compact { gap: 0.6rem; }
-.core-pokemon-head h3,
-.core-pokemon-head h4 {
-  margin: 0 0 0.3rem;
-  line-height: 1.1;
-}
-.core-pokemon-head > div { min-width: 0; }
 .core-compact-stats,
 .mega-stat-preview {
   margin-top: 0.65rem;
@@ -1363,10 +1321,6 @@ overflow-y: visible; text-overflow: ellipsis; }
 .core-fit-panel p {
   margin: 0;
 }
-.core-action-row button {
-  flex: 1 1 10rem;
-  min-height: 2.4rem;
-}
 .core-builder-notice,
 .mega-conflict-warning {
   border: 1px solid rgba(251, 191, 36, 0.35);
@@ -1377,29 +1331,6 @@ overflow-y: visible; text-overflow: ellipsis; }
 .suggested-partners {
   display: grid;
   gap: 0.65rem;
-}
-.core-partner-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(13.5rem, 1fr));
-  gap: 0.65rem;
-}
-.core-partner-card {
-  display: grid;
-  gap: 0.55rem;
-  min-width: 0;
-}
-.core-partner-card button {
-  width: 100%;
-  min-height: 2.25rem;
-}
-.core-fit-panel {
-  display: grid;
-  gap: 0.65rem;
-}
-.notice-badge {
-  border-color: rgba(56, 189, 248, 0.35);
-  background: rgba(56, 189, 248, 0.1);
-  color: rgb(186, 230, 253);
 }
 button[disabled],
 button[aria-disabled="true"] {
@@ -1417,61 +1348,11 @@ button[aria-disabled="true"] {
   .core-status-chips .badge { max-width: 100%; }
 }
 
-/* Guided Team Coach tactical polish pass */
-.core-builder-panel {
-  gap: 0.72rem;
-  overflow-x: hidden;
-overflow-y: visible;
-}
-.core-builder-head {
-  gap: 0.75rem;
-}
-.core-builder-head h2 {
-  letter-spacing: 0.01em;
-}
-.core-builder-head .tiny-button {
-  margin-left: auto;
-  min-height: 2rem;
-  padding: 0.35rem 0.65rem;
-}
-.core-builder-panel.is-collapsed {
-  gap: 0.55rem;
-}
-.core-builder-summary {
-  max-width: 74rem;
-  line-height: 1.5;
-}
-.core-status-chips {
-  gap: 0.38rem;
-}
-.core-status-chips .badge {
-  line-height: 1.15;
-  padding-inline: 0.5rem;
-}
 .core-main-summary,
 .core-partner-card,
 .core-fit-panel,
 .mega-preview-panel {
   padding: 0.85rem;
-}
-.core-main-block,
-.suggested-partners,
-.core-fit-panel {
-  gap: 0.82rem;
-}
-.core-partner-grid {
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 0.75rem;
-  align-items: stretch;
-  overflow: visible;
-}
-.core-partner-card {
-  align-content: start;
-  gap: 0.6rem;
-  min-width: 0;
-}
-.core-partner-card p {
-  line-height: 1.42;
 }
 .core-partner-card .notice,
 .core-partner-card .muted {
@@ -1484,34 +1365,6 @@ overflow-y: visible;
 }
 .core-partner-card .badge-row .badge:nth-of-type(n+4) {
   display: none;
-}
-.core-pokemon-head h4 {
-  font-size: 0.98rem;
-}
-.compact-chain-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 0.55rem;
-}
-.collapse-risk-details {
-  border: 1px solid rgba(251, 191, 36, 0.18);
-  border-radius: 0.85rem;
-  padding: 0.55rem 0.7rem;
-  background: rgba(251, 191, 36, 0.06);
-}
-.collapse-risk-details summary {
-  cursor: pointer;
-  font-weight: 700;
-  color: #fde68a;
-}
-.collapse-risk-details ul {
-  margin: 0.55rem 0 0;
-  padding-left: 1.05rem;
-  display: grid;
-  gap: 0.28rem;
-}
-.collapse-risk-details li {
-  line-height: 1.35;
 }
 @media (min-width: 1180px) {
   .core-partner-grid {
@@ -17668,4 +17521,86 @@ details[open] > summary .strategic-role-toggle::before,
   position: fixed !important;
   inset: 0 !important;
   z-index: 9999 !important;
+}
+
+/* DATA_CONFIDENCE_DISCLOSURE
+   Shared, removable notice for community-inferred Pokémon Champions data. */
+.data-confidence-disclosure {
+  margin: .65rem 0;
+  border: 1px solid rgba(250, 204, 21, .24);
+  border-radius: .85rem;
+  background: rgba(250, 204, 21, .06);
+}
+.data-confidence-disclosure.compact {
+  margin: .45rem 0;
+}
+.data-confidence-summary {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .55rem .7rem;
+  cursor: pointer;
+  list-style: none;
+}
+.data-confidence-summary::-webkit-details-marker {
+  display: none;
+}
+.data-confidence-summary::after {
+  content: '⌄';
+  margin-left: auto;
+  opacity: .7;
+  transition: transform .16s ease;
+}
+.data-confidence-disclosure[open] .data-confidence-summary::after {
+  transform: rotate(180deg);
+}
+.data-confidence-summary:focus-visible {
+  outline: 2px solid rgba(250, 204, 21, .65);
+  outline-offset: 3px;
+  border-radius: .75rem;
+}
+.data-confidence-badge {
+  background: rgba(250, 204, 21, .14);
+  border-color: rgba(250, 204, 21, .34);
+  color: inherit;
+}
+.data-confidence-summary-text,
+.data-confidence-level {
+  color: var(--muted-text, #94a3b8);
+  font-size: .86rem;
+  line-height: 1.35;
+}
+.data-confidence-body {
+  padding: 0 .7rem .7rem;
+  color: var(--muted-text, #94a3b8);
+  font-size: .88rem;
+  line-height: 1.45;
+}
+.data-confidence-body p {
+  margin: .25rem 0 0;
+}
+.data-confidence-note {
+  font-weight: 650;
+}
+.data-confidence-team-panel {
+  border-color: rgba(250, 204, 21, .18);
+}
+.data-confidence-chip-list {
+  display: grid;
+  gap: .45rem;
+  margin-top: .65rem;
+}
+@media (max-width: 720px) {
+  .data-confidence-summary {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: .35rem;
+  }
+  .data-confidence-summary::after {
+    position: absolute;
+    right: .8rem;
+  }
+  .data-confidence-disclosure {
+    position: relative;
+  }
 }

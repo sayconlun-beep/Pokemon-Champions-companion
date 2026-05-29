@@ -1,3 +1,69 @@
+## v0.3.54 - Windows Playwright launcher compatibility
+
+## v0.3.56 - Team Builder targeted slot render wrapper fix
+
+- Fixed the Team Builder targeted slot renderer so the newly-rendered slots region is parsed as a wrapper containing both the header and slot column, rather than only the first sibling element.
+- Restores slot cards after choosing a Pokémon while preserving the deeper targeted-render split from v0.3.55.
+- No CSS or data logic changes.
+
+
+- Fixed `playwright.config.mjs` so mobile UI tests no longer force `/usr/bin/chromium` when running on Windows.
+- Kept `PLAYWRIGHT_CHROMIUM_EXECUTABLE` support for CI/Linux overrides, but now lets Playwright use its managed browser install by default.
+- Made no CSS pruning changes in this patch; batch 02 CSS remains unchanged.
+
+## v0.3.53 - Phase 4 CSS prune batch 02
+
+- Removed a second tiny, reversible CSS prune batch from `src/styles.css`, limited to old Guided Team Coach panel selectors that remained in the verified v0.3.52 runtime candidate list after transient overlay selectors were hard-kept.
+- Avoided global controls, navigation, mobile shell, selector/dropdown, type, stat, item, move, direct picker, MetaDex detail, and mobile More menu styling.
+- Added `reports/css-purge/batch-02-css-prune-removals.{json,md}` as the batch revert map before any further CSS pruning.
+
+## v0.3.52 - Phase 4 CSS transient safelist enforcement
+
+- Fixed `scripts/css-runtime-coverage-report.mjs` so transient overlay/watchlist selectors are treated as hard keep rules during candidate generation, not just reported after the fact.
+- Protected direct Pokémon, move, and item picker selectors, compact move picker body/portal state selectors, MetaDex detail overlay selectors, and mobile More menu selectors from appearing in `runtime-css-candidates.txt`.
+- Kept this as a report-tooling-only patch: no `src/styles.css` rules were removed and no batch-02 prune was attempted.
+
+## v0.3.51 - Phase 4 CSS coverage harness hardening
+
+- Stopped Phase 4 pruning before any additional CSS deletion because the existing runtime coverage candidate list included live direct picker and overlay selectors.
+- Extended `scripts/css-runtime-coverage-report.mjs` to exercise desktop and mobile widths, direct Pokémon/move/item pickers, picker searches, MetaDex detail overlay, mobile More menu, expanded Team Builder slot state, and expanded Analysis Desk sections while coverage is recording.
+- Added transient watchlist reporting and runtime-used class output to `runtime-css-safelist.json` so overlay/transient selectors can be verified before future prune batches.
+- Made no changes to `src/styles.css`; no batch-02 CSS removals were attempted from the unsafe candidate list.
+
+## v0.3.50 - Phase 4 CSS prune batch 01
+
+- Removed the first tiny, reversible batch of runtime-unused CSS rules from `src/styles.css`, limited to isolated legacy selectors confirmed by the existing CSS purge reports.
+- Preserved the dynamic safelist and avoided global controls, navigation, mobile shell, selector/dropdown, type, stat, item, and move styling.
+- Added `reports/css-purge/batch-01-css-prune-removals.{json,md}` as the batch revert map before any further CSS pruning.
+
+## v0.3.49 - Phase 3b Team Builder targeted slot workbench render
+
+- Added `src/app-shell/teamBuilderRegionRender.js` with `renderTeamBuilderDynamicRegions()` and `teamBuilderSignature()` following the MetaDex and Analysis Desk targeted-region pattern.
+- Added stable Team Builder dynamic regions for the slot workbench, mobile/desktop builder status, team snapshot, and recommendation filters while keeping the existing TeamSlotCard render helpers as the single markup source.
+- Updated AppShell rendering so Team Builder slot edits can refresh only the Team Builder dynamic regions and fall back to the full shell render if the route or containers are unavailable.
+- Preserved direct move/item picker overlays because targeted updates only replace descendants of the Team Builder root and do not clear body-mounted overlay portals.
+
+## v0.3.48 - Phase 3a Analysis Desk targeted region render
+
+- Added a stable `data-analysis-desk-dynamic-region` inside the Analysis Desk page so team/scenario-sensitive analysis output can refresh without rebuilding the surrounding app shell.
+- Extracted the Analysis Desk dynamic markup into `renderAnalysisDeskDynamicRegion()` so both the full page render and targeted update path use the same render helpers and strings.
+- Added `src/app-shell/analysisDeskRegionRender.js` with `renderAnalysisDeskDynamicRegions()` and `analysisDeskSignature()` following the MetaDex targeted-region pattern.
+- Updated AppShell rendering so repeat Analysis Desk updates refresh only the dynamic region when the signature changes, falling back to the full shell render when the route/container is unavailable.
+
+## v0.3.47 - Phase 3 Step 2 MetaDex targeted results render
+
+- Added a stable `data-metadex-results` region for the MetaDex results list while keeping the existing results classes and compatibility attribute.
+- Moved MetaDex results and search-option markup into exported page render helpers so the full page render and targeted update path share one source of HTML.
+- Updated the targeted MetaDex region renderer to refresh only metrics, search suggestions, and the results container for search/filter signature changes without calling the full AppShell render path.
+- Kept the global full-render focus and scroll preservation path intact for all non-converted regions.
+
+## v0.3.46 - Phase 2.5 overlay extraction
+
+- Extracted the MetaDex detail overlay behaviour from `src/ui/AppShell.js` into `src/ui/overlays/metadexDetailOverlay.js` while keeping the existing extracted markup renderer.
+- Extracted the direct move picker and direct item picker into focused `src/ui/overlays/` modules, preserving their DOM mount targets, CSS classes, search filtering, close timing, and selection behaviour.
+- Added shared direct-picker helpers for escaping, filtering visibility, close-all behaviour, and the open-click guard so picker timing remains consistent.
+- Kept AppShell as the thin event-delegation caller for these overlays and reduced `src/ui/AppShell.js` from 2,144 lines to 1,735 lines.
+
 ## v0.3.43 - MetaDex targeted search render
 
 

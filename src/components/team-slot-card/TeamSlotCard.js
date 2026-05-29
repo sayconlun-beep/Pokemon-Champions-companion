@@ -5,6 +5,7 @@ import { TypeBadges } from '../../utils/typeBadges.js';
 import { getSlotMegaState } from '../../core/megaEvolutionEngine.js';
 import { isPokemonSlotComplete } from '../../core/teamSlotCompletionEngine.js';
 import { getPokemonDisplayName } from '../../utils/formGrouping.js';
+import { renderDataConfidenceDisclosure } from '../../logic/dataConfidenceDisclosure.js';
 import { generatedBuildCoachNote, formBadge, completionBadge, megaBadge, spriteImage, escapeText } from './teamSlotCardCommon.js';
 import { reviewCard } from './renderReviewCard.js';
 import { controls, megaPreview } from './renderTeamSlotControls.js';
@@ -34,6 +35,7 @@ export function TeamSlotCard(slot, index, data, team = [], uiState = {}) {
         ${slot ? `<div class="slot-status-toggle-row">${pokemon ? completionBadge(completion, index) : ''}<button type="button" class="slot-chevron-button" data-collapse-slot="${index}" aria-label="Minimise slot ${index + 1}"><span aria-hidden="true">⌄</span></button></div><button type="button" class="clear-slot-link" data-clear-slot="${index}" aria-label="Clear slot ${index + 1}"><span class="trash-icon" aria-hidden="true">🗑</span><span>Clear</span></button>` : ''}
       </div>
     </header>
+    ${pokemon ? renderDataConfidenceDisclosure(pokemon, { id: `team-slot-${index}`, compact: true }) : ''}
     ${generatedBuildCoachNote(slot)}
     ${pokemon ? megaPreview(megaState, data) : ''}
     ${pokemon ? controls(slot, index, data, pokemon, legality, team, uiState) : '<p class="muted">Choose a Pokémon to unlock legal set controls.</p>'}

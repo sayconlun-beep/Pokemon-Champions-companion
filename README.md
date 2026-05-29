@@ -4,7 +4,12 @@ A Pokémon Champions team-building and analysis companion app.
 
 ## Current version
 
-v0.3.31
+v0.3.50
+
+
+## Recent update
+
+v0.3.50 applies the first cautious CSS prune batch using runtime coverage and dynamic safelist reports, with a dedicated revert map for the removed rules.
 
 ## Local setup
 

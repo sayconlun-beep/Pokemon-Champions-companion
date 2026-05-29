@@ -53,6 +53,16 @@ const OVERUSED_REPLACEMENTS = [
   [/\bsequencing\b/gi, 'turn planning']
 ];
 
+export function normalizeTacticalDisplayText(value, options = {}) {
+  let text = String(value || '');
+  if (options.replaceWordSeparators) text = text.replace(/[_-]+/g, ' ');
+  if (options.splitCamel) text = text.replace(/([a-z])([A-Z])/g, '$1 $2');
+  return text
+    .replace(/\s+([,.!?;:])/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 export function normalizeTacticalText(value, options = {}) {
   let text = String(value || '');
   for (const [pattern, replacement] of PHRASE_TRANSLATIONS) text = text.replace(pattern, replacement);
@@ -61,10 +71,7 @@ export function normalizeTacticalText(value, options = {}) {
     for (const [pattern, replacement] of OVERUSED_REPLACEMENTS) text = text.replace(pattern, replacement);
   }
   text = suppressRawTokenLeaks(text);
-  return normalizeFinalGrammar(dedupeMalformedPhrases(text))
-    .replace(/\s+([,.!?;:])/g, '$1')
-    .replace(/\s+/g, ' ')
-    .trim();
+  return normalizeTacticalDisplayText(normalizeFinalGrammar(dedupeMalformedPhrases(text)));
 }
 
 export function normalizeCollapseRisk(value) {
@@ -79,7 +86,7 @@ export function normalizeCollapseRisk(value) {
 }
 
 export function ensureSentence(value) {
-  const text = String(value || '').trim();
+  const text = normalizeTacticalDisplayText(value);
   if (!text) return '';
   return /[.!?]$/.test(text) ? text : `${text}.`;
 }

@@ -6,6 +6,7 @@ import { getGroupedPokemonOptions, getPokemonSearchAliases, resolveGroupedPokemo
 import { getReadableAbilityName } from '../../utils/displayNames.js';
 import { ATTACKING_TYPES, TYPE_EFFECTIVENESS, calculateDefensiveMultiplier, calculateWeaknessCoverageProfile } from '../../core/weaknessCoverageProfile.js';
 import { buildTeamCoachingProfile } from '../../logic/teamCoachingProfile.js';
+import { renderDataConfidenceDisclosure } from '../../logic/dataConfidenceDisclosure.js';
 import { metadexCache, metadexViewCacheKey, pokemonCacheKey, teamCacheKey } from './metadexCache.js';
 import { availabilityText, escapeAttr, escapeText, legalAbilities, legalMoves, option, qualityTier, section, tacticalIdentity } from './metadexText.js';
 import { weaknessAnswerFitPanel } from './renderMetadexAnswerPanels.js';
@@ -65,6 +66,7 @@ export function renderDetailPanel(pokemon, state = {}) {
         </div>
       </div>
     </header>
+    ${renderDataConfidenceDisclosure(pokemon, { id: `metadex-${pokemon.pokemon_id || displayName}`, includeStrategicNote: true })}
     ${weaknessAnswerFitPanel(pokemon, state)}
     ${quickBuildSummaryPanel(pokemon, identity, state)}
     ${teamValuePanel(pokemon, identity, state)}

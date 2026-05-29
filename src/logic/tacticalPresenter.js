@@ -1,3 +1,4 @@
+import { ensureSentence, normalizeTacticalDisplayText } from '../core/tacticalNormalization.js';
 const EMPTY_MATCHUP_PROMPT = 'Choose an opposing Pokémon in the Battle Scenario Planner to generate matchup-specific coaching cards.';
 
 function safeArray(value) {
@@ -13,9 +14,7 @@ function uniq(values) {
 }
 
 function cleanSentence(value = '') {
-  const text = String(value || '').replace(/\s+/g, ' ').trim();
-  if (!text) return '';
-  return /[.!?]$/.test(text) ? text : `${text}.`;
+  return ensureSentence(value);
 }
 
 function joinNames(values = [], glue = ' or ') {
@@ -244,26 +243,15 @@ function buildPositioningRiskTip(context = {}) {
   };
 }
 
-function dedupeCards(cards = []) {
-  const seen = new Set();
-  return cards.filter((card) => {
-    if (!card?.title || !card?.detail) return false;
-    const key = card.key || `${card.title} ${card.detail}`.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-}
-
 function buildBattleTips(profile = {}, context = {}) {
   const opponentName = displayOpponentName(context);
   if (!opponentName) return [];
-  return dedupeCards(compact([
+  return compact([
     buildBestAnswerTip(context),
     buildSpeedBattleTip(profile, opponentName),
     buildDisruptionBattleTip(profile, opponentName),
     buildPositioningRiskTip(context)
-  ])).slice(0, 4);
+  ]).filter((card) => card?.title && card?.detail).slice(0, 4);
 }
 
 function buildBattleCoachingPresentation(profile = {}, context = {}) {
@@ -846,9 +834,9 @@ const PRESENTER_TOKEN_REPLACEMENTS = [
 ];
 
 function cleanPresenterDisplayText(value = '') {
-  let text = String(value || '').replace(/[_-]+/g, ' ').replace(/\s+/g, ' ').trim();
+  let text = normalizeTacticalDisplayText(value, { replaceWordSeparators: true });
   PRESENTER_TOKEN_REPLACEMENTS.forEach(([pattern, replacement]) => { text = text.replace(pattern, replacement); });
-  return text.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/\s+/g, ' ').trim();
+  return normalizeTacticalDisplayText(text, { splitCamel: true });
 }
 
 export function formatTacticalPresenterText(value = '', options = {}) {

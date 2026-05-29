@@ -37,8 +37,7 @@ function formatTeamBuilderIssue(value) {
 }
 
 export function TeamBuilderPage(state) {
-  const selected = state.team.filter(Boolean).map((slot) => state.data.indexes?.pokemonById?.[slot.pokemon_id]).filter(Boolean);
-  return `<section class="page-stack team-builder-page">
+  return `<section class="page-stack team-builder-page" data-team-builder-page>
     <header class="hero builder-hero tactical-primary-panel">
       <div><h1>Team Builder</h1><p>Build six legal sets with clear tactical roles, pressure plans, defensive support, and endgame structure.</p></div>
       <div class="hero-actions"><button type="button" data-action="copy-share-link">Copy share link</button><button type="button" data-action="collapse-completed-slots">Minimise completed slots</button><button type="button" data-action="expand-all-slots">Expand all</button><button type="button" data-action="clear-team">Clear team</button></div>
@@ -47,18 +46,40 @@ export function TeamBuilderPage(state) {
     ${teamBuilderAnalysisLinkCard()}
     ${teamBuildingGuideLinkCard()}
     <section class="builder-workspace tactical-builder-workspace priority-builder-workspace">
-      <div class="mobile-team-status-zone">${teamStatus(state, { mobile: true })}</div>
-      <div class="team-slots-priority-zone">
-        <div class="workspace-section-head team-slots-head"><div><p class="eyebrow">Highest priority</p><h2>Current Team Slots</h2></div><span class="badge">${selected.length}/6 selected</span></div>
-        <div class="slot-column">${state.team.map((slot, index) => TeamSlotCard(slot, index, state.data, state.team, state.slotUiState?.[index])).join('')}</div>
-      </div>
+      <div class="mobile-team-status-zone" data-team-builder-mobile-status-region>${renderTeamBuilderMobileStatusRegion(state)}</div>
+      <div class="team-slots-priority-zone" data-team-builder-slots-region>${renderTeamBuilderSlotsRegion(state)}</div>
       <aside class="builder-side builder-priority-side">
-        ${teamStatus(state, { mobile: false })}
-        ${teamSnapshotPanel(state)}
-        ${strategicFilters(state)}
+        <div data-team-builder-desktop-status-region>${renderTeamBuilderDesktopStatusRegion(state)}</div>
+        <div data-team-builder-snapshot-region>${renderTeamBuilderSnapshotRegion(state)}</div>
+        <div data-team-builder-filters-region>${renderTeamBuilderStrategicFiltersRegion(state)}</div>
       </aside>
     </section>
   </section>`;
+}
+
+export function renderTeamBuilderSlotsRegion(state) {
+  const selected = (Array.isArray(state?.team) ? state.team : [])
+    .filter(Boolean)
+    .map((slot) => state.data.indexes?.pokemonById?.[slot.pokemon_id])
+    .filter(Boolean);
+  return `<div class="workspace-section-head team-slots-head"><div><p class="eyebrow">Highest priority</p><h2>Current Team Slots</h2></div><span class="badge">${selected.length}/6 selected</span></div>
+    <div class="slot-column">${(state.team || []).map((slot, index) => TeamSlotCard(slot, index, state.data, state.team, state.slotUiState?.[index])).join('')}</div>`;
+}
+
+export function renderTeamBuilderMobileStatusRegion(state) {
+  return teamStatus(state, { mobile: true });
+}
+
+export function renderTeamBuilderDesktopStatusRegion(state) {
+  return teamStatus(state, { mobile: false });
+}
+
+export function renderTeamBuilderSnapshotRegion(state) {
+  return teamSnapshotPanel(state);
+}
+
+export function renderTeamBuilderStrategicFiltersRegion(state) {
+  return strategicFilters(state);
 }
 
 

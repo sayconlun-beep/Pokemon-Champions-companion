@@ -1,4 +1,4 @@
-import { loadGoldStandardData, loadMoveLegalityData, hasMoveLegalityData } from '../data/dataLoader.js';
+import { loadGoldStandardData } from '../data/dataLoader.js';
 import { getRoute, getRouteOrDefault, safeRouteFromLocation, isKnownRoutePath, routeFromPath } from './routes.js';
 import { deleteSavedTeam, loadSavedTeamById, loadSavedTeams, migrateImportedTeam, renameSavedTeam, sanitizeTeam, saveTeam, updateSavedTeam } from '../core/teamMigrationEngine.js';
 import { importTeamFromShowdown } from '../core/showdownFormatEngine.js';
@@ -7,7 +7,6 @@ import { recommendCandidates } from '../core/goldStandardStrategyEngine.js';
 import { getPokemonSprite, getPokemonSpriteById } from '../utils/pokemonSprites.js';
 import { checkPokemonLegality, checkTeamLegality } from '../core/legalityEngine.js';
 import { candidateConflictsWithTeamMega, analyseTeamMegaState } from '../core/megaEvolutionEngine.js';
-import { getRecommendedItemsForPokemon, normaliseItemOption } from '../core/itemEffectEngine.js';
 import { STAT_DEFINITIONS, adjustStatAllocation, applyStatPreset, emptyStatAllocation, getSlotStatAllocation, setSlotStatAllocation } from '../core/statAllocationEngine.js';
 import { loadProStudyTeams, getProStudyTeamById } from '../core/proTeamDataSource.js';
 import { closeMobileMoreMenus, bindMobileMoreDocumentGuards } from '../app-shell/appShellNavigation.js';
@@ -17,15 +16,22 @@ import { createAppShellRouteHandlers } from '../app-shell/appShellRoutesHandlers
 import { bindAppShellEvents } from '../app-shell/appShellEvents.js';
 import { renderAppShell } from '../app-shell/appShellRender.js';
 import { metadexSearchSignature, renderMetadexDynamicRegions } from '../app-shell/metadexRegionRender.js';
+import { analysisDeskSignature, renderAnalysisDeskDynamicRegions } from '../app-shell/analysisDeskRegionRender.js';
+import { teamBuilderSignature, renderTeamBuilderDynamicRegions } from '../app-shell/teamBuilderRegionRender.js';
 import { getSelectorDropdown, getSelectorWrapForDropdown, openCombobox, closeCombobox, filterGenericOptions, normalizeSearch, visibleGenericOptions, moveActiveGenericOption, hydrateVisibleDropdownSprites, clearDropdownPortal } from '../app-shell/appShellSearch.js';
-import { getPokemonTypeChipStyle } from '../constants/pokemonTypeColors.js';
-import { getGroupedPokemonOptions, getPokemonSearchAliases, getPokemonDisplayName, getPokemonFormLabel, resolveGroupedPokemonId } from '../utils/formGrouping.js';
-import { renderMetadexDetailOverlay } from '../pages/metadex/renderMetadexDetailPanel.js';
+import { getGroupedPokemonOptions, getPokemonSearchAliases, getPokemonDisplayName, getPokemonFormLabel } from '../utils/formGrouping.js';
 import { createAppState, createInitialAppState } from './appState.js';
 import { clearTeamBuilderRecommendationPending, getTeamBuilderRecommendation, isTeamBuilderRecommendationPending, markTeamBuilderRecommendationPending, resetTeamBuilderRecommendationMemo, setTeamBuilderRecommendation, teamRecommendationKey } from '../logic/recommendationMemo.js';
+import { openMetadexDetailOverlay } from './overlays/metadexDetailOverlay.js';
+import { openDirectMovePicker } from './overlays/directMovePicker.js';
+import { openDirectItemPicker } from './overlays/directItemPicker.js';
+import { closeAllDirectPickers, escapeMovePickerText, normalizeMovePickerText, setDirectPickerOptionVisible, armDirectPickerOpenGuard, shouldIgnoreDirectPickerOptionClick } from './overlays/directPickerShared.js';
+import { markTeamBuilderDerivedWorkDirty } from './teamBuilderDerivedState.js';
 
 let metadexSearchRenderTimer = 0;
 let lastMetadexSearchSignature = '';
+let lastAnalysisDeskSignature = '';
+let lastTeamBuilderSignature = '';
 
 export async function mountApp(root) {
   const initialRoute = safeRouteFromLocation(window.location);
@@ -78,10 +84,50 @@ export async function mountApp(root) {
 }
 
 function render(root, state) {
+  root.__appShellRender = render;
+  if (tryRenderTeamBuilderDynamicRegions(root, state)) {
+    syncShareableTeamUrl(state);
+    return;
+  }
+  if (tryRenderAnalysisDeskDynamicRegions(root, state)) {
+    syncShareableTeamUrl(state);
+    return;
+  }
+  renderFullAppShell(root, state);
+}
+
+function renderFullAppShell(root, state) {
   clearDropdownPortal();
   renderAppShell(root, state, bind);
+  root.__lastRenderedRoute = state?.route || '';
   lastMetadexSearchSignature = state?.route === 'metadex' ? metadexSearchSignature(state) : '';
+  lastAnalysisDeskSignature = state?.route === 'analysis-desk' ? analysisDeskSignature(state) : '';
+  lastTeamBuilderSignature = state?.route === 'team-builder' ? teamBuilderSignature(state) : '';
   syncShareableTeamUrl(state);
+}
+
+function tryRenderTeamBuilderDynamicRegions(root, state) {
+  if (!root || state?.route !== 'team-builder') return false;
+  if (root.__lastRenderedRoute !== 'team-builder') return false;
+  if (!root.querySelector('[data-team-builder-slots-region]')) return false;
+
+  const nextSignature = teamBuilderSignature(state);
+  if (nextSignature === lastTeamBuilderSignature) return true;
+  if (!renderTeamBuilderDynamicRegions(root, state)) return false;
+  lastTeamBuilderSignature = nextSignature;
+  return true;
+}
+
+function tryRenderAnalysisDeskDynamicRegions(root, state) {
+  if (!root || state?.route !== 'analysis-desk') return false;
+  if (root.__lastRenderedRoute !== 'analysis-desk') return false;
+  if (!root.querySelector('[data-analysis-desk-dynamic-region]')) return false;
+
+  const nextSignature = analysisDeskSignature(state);
+  if (nextSignature === lastAnalysisDeskSignature) return true;
+  if (!renderAnalysisDeskDynamicRegions(root, state)) return false;
+  lastAnalysisDeskSignature = nextSignature;
+  return true;
 }
 
 function hydrateTeamFromUrlIfPresent(state) {
@@ -303,53 +349,6 @@ function handleDropdownPortalInput(root, event) {
 }
 
 
-function openMetadexDetailOverlay(root, state, selectedId = '') {
-  if (!selectedId) return false;
-  const data = state?.data || {};
-  const resolvedId = resolveGroupedPokemonId(selectedId, data) || selectedId;
-  const pokemon = getGroupedPokemonOptions(data).find((entry) => entry?.pokemon_id === resolvedId)
-    || data?.indexes?.pokemonById?.[resolvedId]
-    || null;
-  if (!pokemon) return false;
-
-  state.metadex ||= { search: '', legality: 'all', field: 'all', selectedId: '', megaOnly: false };
-  state.metadex.selectedId = resolvedId;
-
-  document.querySelectorAll('[data-metadex-detail-overlay]').forEach((node) => node.remove());
-  const host = document.createElement('div');
-  host.innerHTML = renderMetadexDetailOverlay(pokemon, state).trim();
-  const overlay = host.firstElementChild;
-  if (!overlay) return false;
-  document.body.appendChild(overlay);
-  document.body.classList.add('compact-move-picker-open');
-
-  const close = () => {
-    overlay.remove();
-    document.body.classList.remove('compact-move-picker-open');
-    if (state?.metadex) state.metadex.selectedId = '';
-    root?.querySelector?.('.metadex-grid .metadex-tile')?.focus?.({ preventScroll: true });
-  };
-  overlay.querySelector('[data-action="close-metadex-detail"]')?.addEventListener('click', (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    close();
-  });
-  overlay.querySelector('.metadex-detail-overlay-panel')?.addEventListener('pointerdown', (event) => {
-    event.stopPropagation();
-  });
-  overlay.addEventListener('click', (event) => {
-    if (event.target === overlay) close();
-  });
-  overlay.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') close();
-  });
-  window.setTimeout(() => {
-    overlay.querySelector('[data-action="close-metadex-detail"]')?.focus?.({ preventScroll: true });
-    overlay.querySelector('.metadex-detail-overlay-panel')?.scrollIntoView?.({ block: 'start', inline: 'nearest' });
-  }, 0);
-  return true;
-}
-
 function selectMetadexResult(root, state, selectedId = '', { fromPointer = false } = {}) {
   if (!selectedId) return false;
   const view = ensureMetadexView(state);
@@ -510,369 +509,6 @@ function openSelectorFocusControl(selectorFocus, root) {
   filterGenericOptions(input);
   hydrateVisibleDropdownSprites(input);
   return true;
-}
-
-function escapeMovePickerText(value) {
-  return String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
-}
-
-function normalizeMovePickerText(value) {
-  return String(value || '')
-    .toLowerCase()
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, ' ')
-    .trim();
-}
-
-function setDirectPickerOptionVisible(option, visible) {
-  option.hidden = !visible;
-  option.toggleAttribute('aria-hidden', !visible);
-  // Some of the picker cards have explicit display:grid/flex rules later in the
-  // stylesheet. Setting inline display as well makes filtering reliable on both
-  // desktop and real mobile browsers, even if cached/legacy CSS is still loaded.
-  option.style.display = visible ? '' : 'none';
-}
-
-function movePickerPowerAccuracy(move) {
-  const parts = [];
-  if (move?.category) parts.push(move.category);
-  const power = move?.power ?? '';
-  if (power !== '' && power !== '—' && power !== null) parts.push(`Power: ${power}`);
-  const pp = move?.pp ?? '';
-  if (pp !== '' && pp !== '—' && pp !== null) parts.push(`PP: ${pp}`);
-  const accuracy = move?.accuracy ?? '';
-  if (accuracy !== '' && accuracy !== '—' && accuracy !== null) {
-    const acc = accuracy === 1 ? 100 : Number(accuracy) > 0 && Number(accuracy) <= 1 ? Math.round(Number(accuracy) * 100) : accuracy;
-    parts.push(`Accuracy: ${acc}`);
-  }
-  return parts.join(' · ');
-}
-
-function closeDirectMovePicker() {
-  document.getElementById('direct-move-picker-overlay')?.remove();
-  if (!document.getElementById('direct-item-picker-overlay') && !document.getElementById('direct-pokemon-picker-overlay')) {
-    document.body.classList.remove('compact-move-picker-open');
-  }
-}
-
-function closeAllDirectPickers() {
-  document.getElementById('direct-move-picker-overlay')?.remove();
-  document.getElementById('direct-item-picker-overlay')?.remove();
-  document.getElementById('direct-pokemon-picker-overlay')?.remove();
-  document.body.classList.remove('compact-move-picker-open');
-}
-
-function armDirectPickerOpenGuard(root, duration = 550) {
-  if (!root) return;
-  root.__ignoreDirectPickerOptionClickUntil = Date.now() + duration;
-}
-
-function shouldIgnoreDirectPickerOptionClick(root) {
-  const until = Number(root?.__ignoreDirectPickerOptionClickUntil || 0);
-  if (until && Date.now() < until) return true;
-  if (root) root.__ignoreDirectPickerOptionClickUntil = 0;
-  return false;
-}
-
-function renderDirectMovePicker(slotIndex, moveIndex, state, root, loading = false, error = '') {
-  closeAllDirectPickers();
-  const slot = state?.team?.[slotIndex];
-  const pokemonId = slot?.pokemon_id;
-  const overlay = document.createElement('div');
-  overlay.id = 'direct-move-picker-overlay';
-  overlay.className = 'direct-move-picker-overlay';
-  overlay.innerHTML = `<div class="direct-move-picker-panel" role="dialog" aria-modal="true" aria-label="Select Move">
-    <div class="direct-move-picker-head"><strong>Select Move</strong><button type="button" class="tiny-button direct-move-picker-close" aria-label="Close move selector">×</button></div>
-    <input class="direct-move-picker-search" type="search" aria-label="Search moves" autocomplete="off" autocapitalize="off" spellcheck="false" />
-    <div class="direct-move-picker-list"></div>
-  </div>`;
-  document.body.appendChild(overlay);
-  document.body.classList.add('compact-move-picker-open');
-  armDirectPickerOpenGuard(root);
-
-  const list = overlay.querySelector('.direct-move-picker-list');
-  const search = overlay.querySelector('.direct-move-picker-search');
-  const close = () => closeDirectMovePicker();
-  overlay.querySelector('.direct-move-picker-close')?.addEventListener('click', close);
-  overlay.querySelector('.direct-move-picker-panel')?.addEventListener('pointerdown', (event) => {
-    event.stopPropagation();
-  });
-  overlay.addEventListener('click', (event) => { if (event.target === overlay) close(); });
-  overlay.addEventListener('keydown', (event) => { if (event.key === 'Escape') close(); });
-
-  if (!pokemonId) {
-    list.innerHTML = '<p class="muted small-copy dropdown-empty">Choose a Pokémon before picking moves.</p>';
-    search.disabled = true;
-    return;
-  }
-  if (loading) {
-    list.innerHTML = '<p class="muted small-copy dropdown-empty">Loading legal moves…</p>';
-    search.disabled = true;
-    return;
-  }
-  if (error) {
-    list.innerHTML = `<p class="muted small-copy dropdown-empty">${escapeMovePickerText(error)}</p>`;
-    search.disabled = true;
-    return;
-  }
-
-  const rows = state.data?.indexes?.movesByPokemon?.[pokemonId] || [];
-  const moves = rows
-    .map((row) => state.data.indexes.movesById?.[row.move_id] || { move_id: row.move_id, name: row.move_name })
-    .filter(Boolean)
-    .sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
-
-  if (!moves.length) {
-    list.innerHTML = '<p class="muted small-copy dropdown-empty">No legal move data found for this Pokémon.</p>';
-    return;
-  }
-
-  list.innerHTML = moves.map((move) => {
-    const type = move.type || '—';
-    const style = move.type ? ` style="${escapeMovePickerText(getPokemonTypeChipStyle(move.type))}"` : '';
-    const detail = String(move.effect || move.description || move.notes || '').replace(/\s+/g, ' ').trim();
-    const meta = movePickerPowerAccuracy(move);
-    const searchable = normalizeMovePickerText([move.name, type, meta, detail].join(' '));
-    return `<button type="button" class="direct-move-picker-option" data-move-id="${escapeMovePickerText(move.move_id)}" data-search="${escapeMovePickerText(searchable)}">
-      <span class="direct-move-picker-title">${escapeMovePickerText(move.name || move.move_id)}</span>
-      <span class="badge mini-badge type-badge type-${escapeMovePickerText(String(type).toLowerCase())}"${style}>${escapeMovePickerText(type)}</span>
-      ${detail ? `<span class="direct-move-picker-detail">${escapeMovePickerText(detail)}</span>` : ''}
-      ${meta ? `<span class="direct-move-picker-meta">${escapeMovePickerText(meta)}</span>` : ''}
-    </button>`;
-  }).join('');
-
-  list.addEventListener('click', (event) => {
-    const option = event.target.closest('[data-move-id]');
-    if (!option) return;
-    event.preventDefault();
-    event.stopPropagation();
-    if (shouldIgnoreDirectPickerOptionClick(root)) return;
-    state.team[slotIndex].moves ||= [];
-    state.team[slotIndex].moves[moveIndex] = option.dataset.moveId || '';
-    closeDirectMovePicker();
-    markTeamBuilderDerivedWorkDirty(state);
-    render(root, state);
-  });
-
-  search.addEventListener('input', () => {
-    const term = normalizeMovePickerText(search.value);
-    let visible = 0;
-    list.querySelectorAll('[data-move-id]').forEach((option) => {
-      const haystack = normalizeMovePickerText(option.dataset.search || option.textContent || '');
-      const match = !term || haystack.includes(term) || term.split(' ').every((token) => haystack.includes(token));
-      setDirectPickerOptionVisible(option, match);
-      if (match) visible += 1;
-    });
-    let empty = list.querySelector('[data-direct-move-empty]');
-    if (!visible) {
-      if (!empty) {
-        empty = document.createElement('p');
-        empty.className = 'muted small-copy dropdown-empty';
-        empty.dataset.directMoveEmpty = 'true';
-        empty.textContent = 'No legal move matches that search.';
-        list.appendChild(empty);
-      }
-    } else {
-      empty?.remove();
-    }
-  });
-
-  window.requestAnimationFrame(() => {
-    try {
-      overlay.scrollTop = 0;
-      overlay.querySelector('.direct-move-picker-panel, .direct-pokemon-picker-panel, .direct-item-picker-panel')?.scrollIntoView({ block: 'start', inline: 'nearest' });
-      search.focus({ preventScroll: true });
-    } catch {}
-  });
-}
-
-function openDirectMovePicker(slotIndex, moveIndex, state, root) {
-  if (!state?.data) return;
-  renderDirectMovePicker(slotIndex, moveIndex, state, root, !hasMoveLegalityData(state.data));
-  if (!hasMoveLegalityData(state.data)) {
-    loadMoveLegalityData(state.data)
-      .then(() => {
-        clearMoveOptionsCacheIfAvailable();
-        render(root, state);
-        renderDirectMovePicker(slotIndex, moveIndex, state, root, false);
-      })
-      .catch((error) => {
-        console.error('Move learnset lazy-load failed:', error);
-        renderDirectMovePicker(slotIndex, moveIndex, state, root, false, 'Move learnset data could not be loaded.');
-      });
-  }
-}
-
-function getDirectItemPickerItems(slotIndex, state) {
-  const data = state?.data || {};
-  const slot = state?.team?.[slotIndex] || null;
-  const pokemon = slot?.pokemon_id ? data.indexes?.pokemonById?.[slot.pokemon_id] : null;
-  const allItems = (data.collections?.items || [])
-    .filter((item) => String(item.is_legal ?? item.legal ?? 'Yes').toLowerCase() !== 'no')
-    .slice()
-    .sort((a, b) => String(a.name || '').localeCompare(String(b.name || '')));
-  let recommended = [];
-  if (pokemon) {
-    try {
-      recommended = getRecommendedItemsForPokemon(pokemon, state.team || [], allItems, { ...data, currentSlotIndex: slotIndex })
-        .map((item) => ({ ...item, currentSlotIndex: slotIndex }));
-    } catch (error) {
-      console.warn('Item recommendations unavailable:', error);
-    }
-  }
-  const recommendedIds = new Set(recommended.map((item) => item.itemId || item.item_id || item.id || item.name));
-  const normalized = allItems.map((item) => {
-    try { return normaliseItemOption(item, pokemon, state.team || [], slotIndex, data); }
-    catch { return item; }
-  });
-  const combined = [
-    ...recommended,
-    ...normalized.filter((item) => !recommendedIds.has(item.itemId || item.item_id || item.id || item.name))
-  ];
-  return { allItems: combined, recommended, recommendedIds };
-}
-
-function renderDirectItemCard(item, slotIndex, selectedId, recommendedIds) {
-  const id = item.itemId || item.item_id || item.id || item.name || '';
-  const name = item.name || id;
-  const effect = item.shortEffect || item.effectText || itemPickerEffect(item) || 'No effect text available.';
-  const category = item.category || itemPickerCategory(item);
-  const duplicate = !!item.isDuplicate;
-  const selected = id === selectedId;
-  const isMega = !!item.isMegaStone || /mega stone/i.test(`${category} ${effect}`) || /ite$/i.test(name);
-  const recommended = recommendedIds.has(id);
-  const fit = item.fitReason || '';
-  const searchable = normalizeMovePickerText([name, id, category, effect, fit, ...(item.strategicTags || item.strategic_tags || [])].join(' '));
-  return `<button type="button" class="direct-move-picker-option direct-item-picker-option ${selected ? 'selected' : ''} ${duplicate ? 'restricted' : ''} ${recommended ? 'recommended' : ''}" data-item-id="${escapeMovePickerText(id)}" data-search="${escapeMovePickerText(searchable)}">
-      <span class="direct-move-picker-title">${escapeMovePickerText(name)}</span>
-      <span class="direct-item-picker-badges">
-        ${selected ? '<span class="badge mini-badge selected-badge">Selected</span>' : ''}
-        ${recommended ? '<span class="badge mini-badge recommended-badge">Recommended</span>' : ''}
-        ${isMega ? '<span class="badge mini-badge mega-badge">Mega Stone</span>' : ''}
-        ${duplicate ? '<span class="badge mini-badge warning-badge">Duplicate</span>' : '<span class="badge mini-badge legal-badge">Legal</span>'}
-      </span>
-      <span class="direct-move-picker-detail">${escapeMovePickerText(effect)}</span>
-      ${fit ? `<span class="direct-item-picker-fit">${escapeMovePickerText(fit)}</span>` : ''}
-      <span class="direct-move-picker-meta">${escapeMovePickerText(category)}</span>
-    </button>`;
-}
-
-function closeDirectItemPicker() {
-  document.getElementById('direct-item-picker-overlay')?.remove();
-  if (!document.getElementById('direct-move-picker-overlay') && !document.getElementById('direct-pokemon-picker-overlay')) {
-    document.body.classList.remove('compact-move-picker-open');
-  }
-}
-
-function itemPickerEffect(item) {
-  return String(item?.effect || item?.effect_text || item?.description || item?.short_effect || item?.shortEffect || item?.desc || '').replace(/\s+/g, ' ').trim();
-}
-
-function itemPickerCategory(item) {
-  const raw = item?.category || item?.item_category || item?.type || item?.strategic_role || '';
-  if (raw) return String(raw);
-  if (/mega stone|ite$/i.test(`${item?.name || ''} ${item?.item_id || ''}`)) return 'Mega Stone';
-  return 'Item';
-}
-
-function renderDirectItemPicker(slotIndex, state, root) {
-  closeDirectItemPicker();
-  const slot = state?.team?.[slotIndex];
-  const selectedId = slot?.item_id || '';
-  const { allItems: items, recommended, recommendedIds } = getDirectItemPickerItems(slotIndex, state);
-
-  const overlay = document.createElement('div');
-  overlay.id = 'direct-item-picker-overlay';
-  overlay.className = 'direct-move-picker-overlay direct-item-picker-overlay';
-  overlay.innerHTML = `<div class="direct-move-picker-panel direct-item-picker-panel" role="dialog" aria-modal="true" aria-label="Select Item">
-    <div class="direct-move-picker-head"><strong>Select Item <span class="muted">— recommendations + all legal items</span></strong><button type="button" class="tiny-button direct-item-picker-close" aria-label="Close item selector">×</button></div>
-    <input class="direct-move-picker-search direct-item-picker-search" type="search" aria-label="Search items" autocomplete="off" autocapitalize="off" spellcheck="false" />
-    <div class="direct-item-picker-sections">
-      <section class="direct-item-recommendations" ${recommended.length ? '' : 'hidden'}>
-        <div class="direct-item-section-title"><strong>Recommended for this Pokémon</strong><span>Top ${Math.min(recommended.length, 8)}</span></div>
-        <div class="direct-item-recommended-list">${recommended.slice(0, 8).map((item) => renderDirectItemCard(item, slotIndex, selectedId, recommendedIds)).join('')}</div>
-      </section>
-      <section class="direct-item-all-section">
-        <div class="direct-item-section-title"><strong>All legal items</strong><span>${items.length}</span></div>
-        <div class="direct-move-picker-list direct-item-picker-list"></div>
-      </section>
-    </div>
-  </div>`;
-  document.body.appendChild(overlay);
-  document.body.classList.add('compact-move-picker-open');
-  armDirectPickerOpenGuard(root);
-
-  const list = overlay.querySelector('.direct-item-picker-list');
-  const sections = overlay.querySelector('.direct-item-picker-sections');
-  const search = overlay.querySelector('.direct-item-picker-search');
-  const close = () => closeDirectItemPicker();
-  overlay.querySelector('.direct-item-picker-close')?.addEventListener('click', close);
-  overlay.querySelector('.direct-item-picker-panel')?.addEventListener('pointerdown', (event) => {
-    event.stopPropagation();
-  });
-  overlay.addEventListener('click', (event) => { if (event.target === overlay) close(); });
-  overlay.addEventListener('keydown', (event) => { if (event.key === 'Escape') close(); });
-
-  if (!slot) {
-    list.innerHTML = '<p class="muted small-copy dropdown-empty">Choose a Pokémon before picking an item.</p>';
-    search.disabled = true;
-    return;
-  }
-  if (!items.length) {
-    list.innerHTML = '<p class="muted small-copy dropdown-empty">No legal item data found.</p>';
-    return;
-  }
-
-  list.innerHTML = items.map((item) => renderDirectItemCard(item, slotIndex, selectedId, recommendedIds)).join('');
-
-  sections.addEventListener('click', (event) => {
-    const option = event.target.closest('[data-item-id]');
-    if (!option) return;
-    event.preventDefault();
-    event.stopPropagation();
-    if (shouldIgnoreDirectPickerOptionClick(root)) return;
-    state.team[slotIndex].item_id = option.dataset.itemId || '';
-    closeDirectItemPicker();
-    markTeamBuilderDerivedWorkDirty(state);
-    render(root, state);
-  });
-
-  search.addEventListener('input', () => {
-    const term = normalizeMovePickerText(search.value);
-    let visible = 0;
-    sections.querySelectorAll('[data-item-id]').forEach((option) => {
-      const haystack = normalizeMovePickerText(option.dataset.search || option.textContent || '');
-      const match = !term || haystack.includes(term) || term.split(' ').every((token) => haystack.includes(token));
-      setDirectPickerOptionVisible(option, match);
-      if (match) visible += 1;
-    });
-    let empty = sections.querySelector('[data-direct-item-empty]');
-    if (!visible) {
-      if (!empty) {
-        empty = document.createElement('p');
-        empty.className = 'muted small-copy dropdown-empty';
-        empty.dataset.directItemEmpty = 'true';
-        empty.textContent = 'No item matches that search.';
-        sections.appendChild(empty);
-      }
-    } else {
-      empty?.remove();
-    }
-  });
-
-  window.requestAnimationFrame(() => {
-    try {
-      overlay.scrollTop = 0;
-      overlay.querySelector('.direct-move-picker-panel, .direct-pokemon-picker-panel, .direct-item-picker-panel')?.scrollIntoView({ block: 'start', inline: 'nearest' });
-      search.focus({ preventScroll: true });
-    } catch {}
-  });
-}
-
-function openDirectItemPicker(slotIndex, state, root) {
-  if (!state?.data) return;
-  renderDirectItemPicker(slotIndex, state, root);
 }
 
 function closeDirectPokemonPicker() {
@@ -1107,9 +743,6 @@ function scheduleRender(root, state, reason = 'update') {
   });
 }
 
-function markTeamBuilderDerivedWorkDirty(state) {
-  state.__teamBuilderDerivedDirty = true;
-}
 
 function queueDeferredTeamBuilderRecommendations(root, state) {
   if (state.route !== 'team-builder' || !state.data) return;

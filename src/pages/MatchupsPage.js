@@ -5,6 +5,7 @@ import { SpeedControlPanel } from '../components/analysis/SpeedControlPanel.js';
 import { getPokemonDisplayName, getPokemonSearchAliases } from '../utils/formGrouping.js';
 import { buildTeamCoachingProfile } from '../logic/teamCoachingProfile.js';
 import { buildTacticalPresentation } from '../logic/tacticalPresenter.js';
+import { renderDataConfidenceDisclosure, renderTeamDataConfidenceDisclosure } from '../logic/dataConfidenceDisclosure.js';
 
 
 export function MatchupsPage(state) {
@@ -37,6 +38,8 @@ export function MatchupsPage(state) {
         </div>
       </header>
 
+      ${renderTeamDataConfidenceDisclosure(state.team, state.data, { id: 'matchups-team', title: 'Team data confidence' })}
+      ${planner.selectedOpponent ? renderDataConfidenceDisclosure(planner.selectedOpponent, { id: `matchups-opponent-${planner.selectedOpponent.pokemon_id}`, compact: true }) : ''}
       ${renderOpeningPlans(tacticalPresentation)}
       ${renderPrimaryMatchupRisks(model.primaryRisks)}
       ${renderBattleTips(model.battleCoaching)}

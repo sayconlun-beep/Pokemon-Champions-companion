@@ -18,10 +18,7 @@ export function renderMetaDexPage(state) {
   const view = state.metadex || {};
   const pokemon = filteredPokemon(state, view);
   const groupedCount = getGroupedPokemonOptions(state.data).length;
-  const visibleLimit = metadexVisibleLimit(view);
-  const visiblePokemon = pokemon.slice(0, visibleLimit);
   const selected = view.selectedId ? selectPokemon(state, pokemon, view.selectedId) : null;
-  const hiddenCount = Math.max(0, pokemon.length - visiblePokemon.length);
   const coverageTotal = state.data.requiredGoldFields.length;
   return `<section class="page-stack metadex-page">
     <header class="hero metadex-hero">
@@ -44,7 +41,7 @@ export function renderMetaDexPage(state) {
           <span>Pokémon name</span>
           <input id="metadex-name-search" value="${escapeAttr(view.search || '')}" aria-label="Search Pokémon" autocomplete="off" data-metadex-search />
           <div class="dropdown-panel metadex-dropdown" role="listbox" data-metadex-search-options>
-            ${searchOptions(state, view).map((pokemonRow) => `<button type="button" class="dropdown-option" data-metadex-select="${escapeAttr(pokemonRow.pokemon_id)}" data-action="select-metadex-pokemon" data-pokemon-id="${escapeAttr(pokemonRow.pokemon_id)}">${escapeText(getPokemonDisplayName(pokemonRow))}</button>`).join('')}
+            ${renderMetadexSearchOptions(state, view)}
           </div>
         </label>
         <label class="field metadex-primary-filter">
@@ -115,12 +112,25 @@ export function renderMetaDexPage(state) {
     ${selected ? renderMetadexDetailOverlay(selected, state) : ''}
 
     <section class="metadex-layout metadex-grid-only-layout">
-      <section class="dex-grid metadex-grid" aria-label="Pokémon results" data-metadex-results-region>
-        ${visiblePokemon.map((pokemonRow) => dexTile(pokemonRow, state, selected?.pokemon_id)).join('') || emptyState()}
-        ${hiddenCount > 0 ? renderMetadexResultLimitNotice(hiddenCount, view) : ''}
+      <section class="dex-grid metadex-grid" aria-label="Pokémon results" data-metadex-results data-metadex-results-region>
+        ${renderMetadexResultsRegion(state, view, pokemon, selected)}
       </section>
     </section>
   </section>`;
+}
+
+
+export function renderMetadexSearchOptions(state = {}, view = {}) {
+  return searchOptions(state, view)
+    .map((pokemonRow) => `<button type="button" class="dropdown-option" data-metadex-select="${escapeAttr(pokemonRow.pokemon_id)}" data-action="select-metadex-pokemon" data-pokemon-id="${escapeAttr(pokemonRow.pokemon_id)}">${escapeText(getPokemonDisplayName(pokemonRow))}</button>`)
+    .join('');
+}
+
+export function renderMetadexResultsRegion(state = {}, view = state.metadex || {}, pokemon = filteredPokemon(state, view), selected = null) {
+  const visibleLimit = metadexVisibleLimit(view);
+  const visiblePokemon = pokemon.slice(0, visibleLimit);
+  const hiddenCount = Math.max(0, pokemon.length - visiblePokemon.length);
+  return `${visiblePokemon.map((pokemonRow) => dexTile(pokemonRow, state, selected?.pokemon_id)).join('') || emptyState()}${hiddenCount > 0 ? renderMetadexResultLimitNotice(hiddenCount, view) : ''}`;
 }
 
 export function searchOptions(state = {}, view = {}) {
