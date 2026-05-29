@@ -1,0 +1,31 @@
+{
+  "name": "pokemon-champions-companion",
+  "version": "0.3.31",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check:legacy": "node scripts/check-no-legacy-systems.js",
+    "build": "npm run check:legacy && npm run test:common-builds-legality && node scripts/build.mjs",
+    "qa:purge": "node scripts/purge-check.mjs",
+    "qa": "npm run build && npm run qa:purge",
+    "start": "npm run build && node scripts/serve-spa.mjs",
+    "qa:stat-conversion": "node scripts/stat-conversion-qa.mjs",
+    "test:mobile": "npx playwright test",
+    "test:mobile:headed": "npx playwright test --headed",
+    "test:mobile:debug": "npx playwright test --debug",
+    "test:mobile:report": "npx playwright show-report",
+    "qa:strategic-data": "python3 scripts/validate-strategic-data.py",
+    "test:strategic-validator": "python3 tests/strategic-validator-ninetales-alola-regression.py",
+    "test:showdown-common-builds": "node tests/update-common-builds-from-smogon.test.mjs",
+    "test:common-builds-legality": "node scripts/validate-common-builds-legality.mjs",
+    "test:shareable-team-url": "node tests/shareable-team-url.test.mjs",
+    "test:item-clause-engine": "node tests/item-clause-engine.test.mjs",
+    "test:stat-formula-engine": "node tests/stat-formula-engine.test.mjs",
+    "test:mega-evolution-engine": "node tests/mega-evolution-engine.test.mjs",
+    "test:legality-engine": "node tests/legality-engine.test.mjs",
+    "test:team-migration-engine": "node tests/team-migration-engine.test.mjs",
+    "test:engines": "node tests/run-engine-tests.mjs",
+    "test:startup-smoke": "node scripts/smoke-test-startup.mjs",
+    "test": "npm run test:engines && npm run test:shareable-team-url && npm run test:showdown-common-builds && npm run test:strategic-validator && npm run test:common-builds-legality && npm run test:startup-smoke"
+  }
+}

@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pokémon Champions Team Builder</title>
+  <link rel="stylesheet" href="/src/styles.css" />
+  <!-- Inline first-paint fallback. If /src/main.js 404s or the module system
+       refuses to execute it (e.g. wrong MIME type from a misconfigured host),
+       the user still sees a real message instead of a black screen. The app
+       shell replaces this <div> content as soon as JS runs. -->
+  <style>
+    .nojs-fallback {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 640px;
+      margin: 4rem auto;
+      padding: 1.5rem 2rem;
+      background: #1a1f3a;
+      color: #e8eaf0;
+      border-radius: 8px;
+      line-height: 1.5;
+    }
+    .nojs-fallback h1 { margin-top: 0; }
+    .nojs-fallback code { background: #2a2f4a; padding: 0.1em 0.4em; border-radius: 3px; }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <noscript>
+      <div class="nojs-fallback">
+        <h1>JavaScript required</h1>
+        <p>This app is a single-page application that needs JavaScript to run. Enable JavaScript for this site and reload.</p>
+      </div>
+    </noscript>
+    <!-- Fallback shown if the inline script below cannot replace it within ~5s.
+         Replaced immediately by main.js's holding card, then by the real app
+         once data loads. Visible to users on stale-cache and 404 failures. -->
+    <div class="nojs-fallback" id="bootstrap-fallback">
+      <h1>Loading Pokémon Champions team builder…</h1>
+      <p>If you see this message for more than a few seconds, the app could not start. Try a hard refresh: <code>Ctrl+Shift+R</code> on Windows/Linux or <code>Cmd+Shift+R</code> on macOS. This usually clears a stale cache.</p>
+      <p id="bootstrap-error" style="display:none;color:#ffb3b3;"></p>
+    </div>
+  </div>
+  <script>
+    // Tiny inline pre-loader: shows a visible "module script failed to load"
+    // message if the main.js module never executes (404, MIME-type mismatch,
+    // CSP block, etc.). This runs even if module loading fails entirely.
+    window.__appLaunchTimer = setTimeout(function () {
+      var err = document.getElementById('bootstrap-error');
+      if (err) {
+        err.style.display = 'block';
+        err.textContent = 'The app script (/src/main.js) did not start within 5 seconds. Open DevTools → Network and reload to check if /src/main.js or any /data/*.json file is 404ing.';
+      }
+    }, 5000);
+  </script>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
